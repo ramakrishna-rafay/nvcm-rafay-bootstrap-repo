@@ -1,0 +1,5 @@
+---
+- name: NVIDIA
+  description: "NVIDIA Networking"
+  deployment_types: [all]
+

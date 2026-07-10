@@ -1,0 +1,31 @@
+---
+- name: Site
+  description: "Physical or logical site"
+  content_types:
+    - dcim.device
+    - dcim.rack
+  deployment_types: [all]
+
+- name: Building
+  description: "Building within a site"
+  parent: Site
+  content_types:
+    - dcim.device
+    - dcim.rack
+  deployment_types: [all]
+
+- name: Room
+  description: "Room within a building"
+  parent: Building
+  content_types:
+    - dcim.device
+    - dcim.rack
+  deployment_types: [all]
+
+- name: Rack
+  description: "Rack within a room"
+  parent: Room
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+

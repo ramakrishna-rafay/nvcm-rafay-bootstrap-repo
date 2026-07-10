@@ -1,0 +1,51 @@
+---
+- name: Active
+  color: "4caf50"
+  description: "Device is active"
+  content_types:
+    - dcim.device
+    - dcim.interface
+    - dcim.cable
+    - ipam.ipaddress
+    - ipam.prefix
+  deployment_types: [all]
+
+- name: Planned
+  color: "00bcd4"
+  description: "Device is planned"
+  content_types:
+    - dcim.device
+    - dcim.interface
+    - dcim.cable
+    - ipam.ipaddress
+    - ipam.prefix
+  deployment_types: [all]
+
+- name: Provisioning
+  color: "e91e63"
+  description: "Device is being provisioned"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: Provisioned
+  color: "2196f3"
+  description: "Device has been provisioned"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: Failed
+  color: "f44336"
+  description: "Device has failed"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: Maintenance
+  color: "ff5722"
+  description: "Device is under maintenance"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+

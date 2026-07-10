@@ -1,0 +1,22 @@
+---
+- name: spine
+  color: "aa1409"
+  description: "Spine switch role"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: leaf
+  color: "4caf50"
+  description: "Leaf switch role"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: mgmt
+  color: "ff9800"
+  description: "Management switch role"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+

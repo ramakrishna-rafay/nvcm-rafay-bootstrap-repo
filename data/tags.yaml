@@ -1,0 +1,29 @@
+---
+- name: cumulus
+  color: "009688"
+  description: "Cumulus Linux device"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: spine
+  color: "aa1409"
+  description: "Spine switch"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: leaf
+  color: "4caf50"
+  description: "Leaf switch"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: vm
+  color: "9c27b0"
+  description: "Virtual machine based switch"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+

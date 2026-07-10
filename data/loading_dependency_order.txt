@@ -1,0 +1,11 @@
+1. manufacturers.yaml       (no dependencies)
+2. location_types.yaml      (no dependencies)
+3. statuses.yaml            (no dependencies)
+4. namespaces.yaml          (no dependencies)
+5. platforms.yaml           (depends on manufacturers)
+6. roles.yaml               (no dependencies)
+7. tags.yaml                (no dependencies)
+8. tenants.yaml             (no dependencies)
+9. locations.yaml           (depends on location_types, statuses, tenants)
+10. device_types/           (depends on manufacturers)
+

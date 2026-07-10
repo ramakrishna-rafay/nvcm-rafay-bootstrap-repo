@@ -1,0 +1,149 @@
+---
+manufacturer: NVIDIA
+model: Cumulus VX
+slug: cumulus-vx
+part_number: "cumulus-vx"
+u_height: 1
+is_full_depth: false
+device_family: Virtual
+comments: "Cumulus Linux Virtual Switch for lab and simulation"
+deployment_types: [all]
+
+console_ports:
+  - name: con0
+    type: de-9
+
+interfaces:
+  - name: eth0
+    type: 1000base-t
+    mgmt_only: true
+    description: "Out of band management interface"
+
+  - name: swp1
+    type: 1000base-t
+    description: "Front panel port 1"
+
+  - name: swp2
+    type: 1000base-t
+    description: "Front panel port 2"
+
+  - name: swp3
+    type: 1000base-t
+    description: "Front panel port 3"
+
+  - name: swp4
+    type: 1000base-t
+    description: "Front panel port 4"
+
+  - name: swp5
+    type: 1000base-t
+    description: "Front panel port 5"
+
+  - name: swp6
+    type: 1000base-t
+    description: "Front panel port 6"
+
+  - name: swp7
+    type: 1000base-t
+    description: "Front panel port 7"
+
+  - name: swp8
+    type: 1000base-t
+    description: "Front panel port 8"
+
+  - name: swp9
+    type: 1000base-t
+    description: "Front panel port 9"
+
+  - name: swp10
+    type: 1000base-t
+    description: "Front panel port 10"
+
+  - name: swp11
+    type: 1000base-t
+    description: "Front panel port 11"
+
+  - name: swp12
+    type: 1000base-t
+    description: "Front panel port 12"
+
+  - name: swp13
+    type: 1000base-t
+    description: "Front panel port 13"
+
+  - name: swp14
+    type: 1000base-t
+    description: "Front panel port 14"
+
+  - name: swp15
+    type: 1000base-t
+    description: "Front panel port 15"
+
+  - name: swp16
+    type: 1000base-t
+    description: "Front panel port 16"
+
+  - name: swp17
+    type: 1000base-t
+    description: "Front panel port 17"
+
+  - name: swp18
+    type: 1000base-t
+    description: "Front panel port 18"
+
+  - name: swp19
+    type: 1000base-t
+    description: "Front panel port 19"
+
+  - name: swp20
+    type: 1000base-t
+    description: "Front panel port 20"
+
+  - name: swp21
+    type: 1000base-t
+    description: "Front panel port 21"
+
+  - name: swp22
+    type: 1000base-t
+    description: "Front panel port 22"
+
+  - name: swp23
+    type: 1000base-t
+    description: "Front panel port 23"
+
+  - name: swp24
+    type: 1000base-t
+    description: "Front panel port 24"
+
+  - name: swp25
+    type: 1000base-t
+    description: "Front panel port 25"
+
+  - name: swp26
+    type: 1000base-t
+    description: "Front panel port 26"
+
+  - name: swp27
+    type: 1000base-t
+    description: "Front panel port 27"
+
+  - name: swp28
+    type: 1000base-t
+    description: "Front panel port 28"
+
+  - name: swp29
+    type: 1000base-t
+    description: "Front panel port 29"
+
+  - name: swp30
+    type: 1000base-t
+    description: "Front panel port 30"
+
+  - name: swp31
+    type: 1000base-t
+    description: "Front panel port 31"
+
+  - name: swp32
+    type: 1000base-t
+    description: "Front panel port 32"
+

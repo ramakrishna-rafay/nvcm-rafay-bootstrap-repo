@@ -1,0 +1,8 @@
+---
+- name: Cumulus Linux
+  manufacturer: NVIDIA
+  description: "Cumulus Linux 5.6 Network OS"
+  network_driver: cumulus
+  napalm_driver: ""
+  deployment_types: [all]
+

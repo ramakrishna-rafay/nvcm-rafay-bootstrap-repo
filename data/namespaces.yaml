@@ -1,0 +1,9 @@
+---
+- name: Global
+  description: "Global routing namespace"
+  deployment_types: [all]
+
+- name: MyOrg
+  description: "MyOrg private namespace"
+  deployment_types: [all]
+

@@ -1,0 +1,5 @@
+---
+- name: MyOrgRafay
+  description: "My organization Rafay tenant"
+  deployment_types: [all]
+

@@ -1,0 +1,80 @@
+---
+manufacturer: NVIDIA
+model: SN5600
+slug: sn5600
+part_number: "MSN5600-VS2FO"
+u_height: 1
+is_full_depth: true
+comments: "NVIDIA cumulus 5.6 virtualswitch"
+deployment_types: [all]
+
+interfaces:
+  - name: eth0
+    type: 1000base-t
+    mgmt_only: true
+    description: "Management interface"
+
+  - name: swp1
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 1"
+
+  - name: swp2
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 2"
+
+  - name: swp3
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 3"
+
+  - name: swp4
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 4"
+
+  - name: swp5
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 5"
+
+  - name: swp6
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 6"
+
+  - name: swp7
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 7"
+
+  - name: swp8
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 8"
+
+  - name: swp9
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 9"
+
+  - name: swp10
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 10"
+
+  - name: swp11
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 11"
+
+  - name: swp12
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 12"
+
+  - name: swp13
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 13"
+
+  - name: swp14
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 14"
+
+  - name: swp15
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 15"
+
+  - name: swp16
+    type: 400gbase-x-qsfpdd
+    description: "Front panel port 16"
+

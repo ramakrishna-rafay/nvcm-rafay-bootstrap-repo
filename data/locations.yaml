@@ -1,0 +1,32 @@
+---
+- name: blr-dc01
+  location_type: Site
+  status: Active
+  description: "Oracle Cloud Infrastructure Datacenter"
+  tenant: MyOrgRafay
+  deployment_types: [all]
+
+- name: Building-01
+  location_type: Building
+  parent: blr-dc01
+  status: Active
+  description: "Main building"
+  tenant: MyOrgRafay
+  deployment_types: [all]
+
+- name: Room-01
+  location_type: Room
+  parent: Building-01
+  status: Active
+  description: "Main server room"
+  tenant: MyOrgRafay
+  deployment_types: [all]
+
+- name: Rack-01
+  location_type: Rack
+  parent: Room-01
+  status: Active
+  description: "Primary rack for spine-leaf fabric"
+  tenant: MyOrgRafay
+  deployment_types: [all]
+
