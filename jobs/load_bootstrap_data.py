@@ -23,6 +23,7 @@ from nautobot.apps.jobs import Job, register_jobs
 from nautobot.core.models.fields import slugify_dashes_to_underscores
 from nautobot.dcim.models import (
     DeviceType,
+    Location,
     LocationType,
     Manufacturer,
     Platform,
@@ -130,6 +131,7 @@ class LoadBootstrapData(Job):
         self.load_location_types()
         self.load_namespaces()
         self.load_statuses()
+        self.load_locations()
         self.load_roles()
         self.load_tags()
         self.load_custom_fields()
@@ -668,6 +670,109 @@ class LoadBootstrapData(Job):
             self.logger.failure(
                 "Error reading location types file",
                 extra={"grouping": "location_types"},
+            )
+            self.logger.debug(str(e))
+
+    def load_locations(self):
+        """Load locations from YAML template (depends on location_types, statuses, tenants)."""
+        self.logger.info("Loading Locations", extra={"grouping": "locations"})
+
+        locations_file = self.data_path / "locations.yaml"
+
+        if not locations_file.exists():
+            self.logger.warning(f"Locations file not found: {locations_file}")
+            return
+
+        try:
+            with open(locations_file) as f:
+                locations = yaml.safe_load(f)
+
+            if not locations:
+                self.logger.warning("No locations found in file")
+                return
+
+            for loc_data in locations:
+                try:
+                    name = loc_data.get("name")
+                    if not name:
+                        self.logger.warning("Skipping location with no name")
+                        continue
+
+                    if not self.should_load_item(loc_data, f"location '{name}'"):
+                        continue
+
+                    # required: location_type + status
+                    try:
+                        location_type = LocationType.objects.get(name=loc_data["location_type"])
+                    except (KeyError, LocationType.DoesNotExist):
+                        self.logger.warning(
+                            f"Skipping location '{name}': location_type "
+                            f"'{loc_data.get('location_type')}' not found",
+                            extra={"grouping": "locations"},
+                        )
+                        continue
+                    try:
+                        status = Status.objects.get(name=loc_data.get("status", "Active"))
+                    except Status.DoesNotExist:
+                        self.logger.warning(
+                            f"Skipping location '{name}': status '{loc_data.get('status')}' not found",
+                            extra={"grouping": "locations"},
+                        )
+                        continue
+
+                    # optional: parent (another Location), tenant
+                    parent = None
+                    if loc_data.get("parent"):
+                        try:
+                            parent = Location.objects.get(name=loc_data["parent"])
+                        except Location.DoesNotExist:
+                            self.logger.warning(
+                                f"Parent location not found for '{name}': {loc_data['parent']}",
+                                extra={"grouping": "locations"},
+                            )
+                    tenant = None
+                    if loc_data.get("tenant"):
+                        try:
+                            tenant = Tenant.objects.get(name=loc_data["tenant"])
+                        except Tenant.DoesNotExist:
+                            self.logger.warning(
+                                f"Tenant not found for location '{name}': {loc_data['tenant']}",
+                                extra={"grouping": "locations"},
+                            )
+
+                    loc, created = Location.objects.get_or_create(
+                        name=name,
+                        location_type=location_type,
+                        defaults={
+                            "status": status,
+                            "parent": parent,
+                            "tenant": tenant,
+                            "description": loc_data.get("description", ""),
+                        },
+                    )
+
+                    if created:
+                        self.logger.success(
+                            f"Created location: {name}",
+                            extra={"grouping": "locations", "object": loc},
+                        )
+                    else:
+                        self.logger.info(
+                            f"Location already exists: {name}",
+                            extra={"grouping": "locations", "object": loc},
+                        )
+
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing location: {loc_data.get('name', 'unknown')}",
+                        extra={"grouping": "locations"},
+                    )
+                    self.logger.debug(str(e))
+
+        except Exception as e:
+            self.logger.failure(
+                "Error reading locations file",
+                extra={"grouping": "locations"},
             )
             self.logger.debug(str(e))
 
