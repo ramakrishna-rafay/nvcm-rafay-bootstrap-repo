@@ -12,44 +12,44 @@
   description: "Blr Center Main building"
   deployment_types: [all]
 
-- name: B001-R001
+- name: Room-001
   location_type: Room
   parent: Building-001
   status: Active
   description: "Blr DC main building Room 1"
   deployment_types: [all]
 
-- name: B001-R001-R001
+- name: Rack-001
   location_type: Rack
-  parent: B001-R001
+  parent: Room-001
   status: Active
   description: "Blr DC main building Room 1, Rack 1 "
   deployment_types: [all]
 
-- name: B001-R001-R002
+- name: Rack-002
   location_type: Rack
-  parent: B001-R001
+  parent: Room-002
   status: Active
   description: "Blr DC main building Room 1, Rack 2"
   deployment_types: [all]
 
-- name: B001-R002
+- name: Room-002
   location_type: Room
   parent: Building-001
   status: Active
   description: "Blr DC main Building Room 2, Rack 1"
   deployment_types: [all]
 
-- name: B001-R002-R001
+- name: Rack-001
   location_type: Rack
-  parent: B001-R002
+  parent: Room-002
   status: Active
   description: "Blr DC main Building Room 2 Rack 2rack-01 for spine-leaf fabric"
   deployment_types: [all]
 
-- name: B001-R002-R002
+- name: Rack-002
   location_type: Rack
-  parent: B001-R002
+  parent: Room-002
   status: Active
   description: "rack-02 for spine-leaf fabric"
   deployment_types: [all]
@@ -60,30 +60,30 @@
   description: "HYDERBAD Center Datacenter"
   deployment_types: [all]
 
-- name: HYDB001
+- name: hyd-building-001
   location_type: Building
   parent: hyd-dc01
   status: Active
   description: "HYD Center Main building"
   deployment_types: [all]
 
-- name: HYDB001-001
+- name: hyd-room-001
   location_type: Room
-  parent: HYDB001
+  parent: hyd-building-001
   status: Active
   description: "Hyd Center Main building - Room1 "
   deployment_types: [all]
 
-- name: HYDB001-001-001
+- name: hyd-rack-001
   location_type: Rack
-  parent: HYDB001-001
+  parent: hyd-room-001
   status: Active
   description: "Hyd Center main building - Room1, Rack 1"
   deployment_types: [all]
 
-- name: HYDB001-001-002
+- name: hyd-rack-002
   location_type: Rack
-  parent: HYDB001-001
+  parent: hyd-room-001
   status: Active
   description: "Hyd Center main building - Room1, Rack 2 "
   deployment_types: [all]
