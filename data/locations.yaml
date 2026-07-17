@@ -71,43 +71,43 @@
 
 
 - name: USA
-  location_type: Site
+  location_type: Region
   status: Active
   parent: Rafay
   description: "USA Cloud Infrastructure Datacenter"
   deployment_types: [all]
 
-- name: Sunnyvale
+- name: sunnyvale
   location_type: Site
   status: Active
   parent: USA
   description: "USA Sunnyvale Cloud Infrastructure Datacenter"
   deployment_types: [all]
 
-- name: sunnyvalue-site
+- name: sunnyvale-site
   location_type: Building
-  parent: Sunnyvale
+  parent: sunnyvale
   status: Active
   description: "SunnyvaleCenter Main building"
   deployment_types: [all]
 
-- name: sunnyvale-Room-001
+- name: sunnyvale-room001
   location_type: Room
   parent: sunnyvale-site
   status: Active
   description: "Sunnyvale DC main building Room 1"
   deployment_types: [all]
 
-- name: Rack-001
+- name: sunnyvale-room001-rack001
   location_type: Rack
-  parent: sunnyvale-Room-001
+  parent: sunnyvale-room001
   status: Active
   description: "Sunnyvale DC main building Room 1, Rack 1 "
   deployment_types: [all]
 
-- name: Rack-002
+- name: sunnyvale-room001-rack-002
   location_type: Rack
-  parent: sunnyvale-Room-001
+  parent: sunnyvale-room001
   status: Active
   description: "Sunnyvale DC main building Room 1, Rack 1 "
   deployment_types: [all]
