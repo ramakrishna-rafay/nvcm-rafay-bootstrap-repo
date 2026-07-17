@@ -28,30 +28,9 @@
 
 - name: Rack-002
   location_type: Rack
-  parent: Room-002
+  parent: Room-001
   status: Active
   description: "Blr DC main building Room 1, Rack 2"
-  deployment_types: [all]
-
-- name: Room-002
-  location_type: Room
-  parent: Building-001
-  status: Active
-  description: "Blr DC main Building Room 2, Rack 1"
-  deployment_types: [all]
-
-- name: Rack-001
-  location_type: Rack
-  parent: Room-002
-  status: Active
-  description: "Blr DC main Building Room 2 Rack 2rack-01 for spine-leaf fabric"
-  deployment_types: [all]
-
-- name: Rack-002
-  location_type: Rack
-  parent: Room-002
-  status: Active
-  description: "rack-02 for spine-leaf fabric"
   deployment_types: [all]
 
 - name: hyd-dc01
