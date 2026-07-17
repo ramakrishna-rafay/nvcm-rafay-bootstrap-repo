@@ -2,6 +2,7 @@
 - name: blr-dc01
   location_type: Site
   status: Active
+  parent: India
   description: "Blr Cloud Infrastructure Datacenter"
   deployment_types: [all]
 
@@ -36,6 +37,7 @@
 - name: hyd-dc01
   location_type: Site
   status: Active
+  parent: India
   description: "HYDERBAD Center Datacenter"
   deployment_types: [all]
 
@@ -66,4 +68,48 @@
   status: Active
   description: "Hyd Center main building - Room1, Rack 2 "
   deployment_types: [all]
+
+
+- name: USA
+  location_type: Site
+  status: Active
+  parent: Rafay
+  description: "USA Cloud Infrastructure Datacenter"
+  deployment_types: [all]
+
+- name: Sunnyvale
+  location_type: Site
+  status: Active
+  parent: USA
+  description: "USA Sunnyvale Cloud Infrastructure Datacenter"
+  deployment_types: [all]
+
+- name: sunnyvalue-site
+  location_type: Building
+  parent: Sunnyvale
+  status: Active
+  description: "SunnyvaleCenter Main building"
+  deployment_types: [all]
+
+- name: sunnyvale-Room-001
+  location_type: Room
+  parent: sunnyvale-site
+  status: Active
+  description: "Sunnyvale DC main building Room 1"
+  deployment_types: [all]
+
+- name: Rack-001
+  location_type: Rack
+  parent: sunnyvale-Room-001
+  status: Active
+  description: "Sunnyvale DC main building Room 1, Rack 1 "
+  deployment_types: [all]
+
+- name: Rack-002
+  location_type: Rack
+  parent: sunnyvale-Room-001
+  status: Active
+  description: "Sunnyvale DC main building Room 1, Rack 1 "
+  deployment_types: [all]
+
 
