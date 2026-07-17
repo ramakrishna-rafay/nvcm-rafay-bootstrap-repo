@@ -2,27 +2,89 @@
 - name: blr-dc01
   location_type: Site
   status: Active
-  description: "Oracle Cloud Infrastructure Datacenter"
+  description: "Blr Cloud Infrastructure Datacenter"
   deployment_types: [all]
 
-- name: Building-01
+- name: Building-001
   location_type: Building
   parent: blr-dc01
   status: Active
-  description: "Main building"
+  description: "Blr Center Main building"
   deployment_types: [all]
 
-- name: Room-01
+- name: B001-R001
   location_type: Room
-  parent: Building-01
+  parent: Building-001
   status: Active
-  description: "Main server room"
+  description: "Blr DC main building Room 1"
   deployment_types: [all]
 
-- name: Rack-01
+- name: B001-R001-R001
   location_type: Rack
-  parent: Room-01
+  parent: B001-R001
   status: Active
-  description: "Primary rack for spine-leaf fabric"
+  description: "Blr DC main building Room 1, Rack 1 "
+  deployment_types: [all]
+
+- name: B001-R001-R002
+  location_type: Rack
+  parent: B001-R001
+  status: Active
+  description: "Blr DC main building Room 1, Rack 2"
+  deployment_types: [all]
+
+- name: B001-R002
+  location_type: Room
+  parent: Building-001
+  status: Active
+  description: "Blr DC main Building Room 2, Rack 1"
+  deployment_types: [all]
+
+- name: B001-R002-R001
+  location_type: Rack
+  parent: B001-R002
+  status: Active
+  description: "Blr DC main Building Room 2 Rack 2rack-01 for spine-leaf fabric"
+  deployment_types: [all]
+
+- name: B001-R002-R002
+  location_type: Rack
+  parent: B001-R002
+  status: Active
+  description: "rack-02 for spine-leaf fabric"
+  deployment_types: [all]
+
+- name: hyd-dc01
+  location_type: Site
+  status: Active
+  description: "HYDERBAD Center Datacenter"
+  deployment_types: [all]
+
+- name: HYDB001
+  location_type: Building
+  parent: hyd-dc01
+  status: Active
+  description: "HYD Center Main building"
+  deployment_types: [all]
+
+- name: HYDB001-001
+  location_type: Room
+  parent: HYDB001
+  status: Active
+  description: "Hyd Center Main building - Room1 "
+  deployment_types: [all]
+
+- name: HYDB001-001-001
+  location_type: Rack
+  parent: HYDB001-001
+  status: Active
+  description: "Hyd Center main building - Room1, Rack 1"
+  deployment_types: [all]
+
+- name: HYDB001-001-002
+  location_type: Rack
+  parent: HYDB001-001
+  status: Active
+  description: "Hyd Center main building - Room1, Rack 2 "
   deployment_types: [all]
 
