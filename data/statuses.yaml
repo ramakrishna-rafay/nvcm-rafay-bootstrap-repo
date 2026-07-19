@@ -1,10 +1,10 @@
 ---
- - name: Connected
-   color: "4caf50"
-   description: "Cable is connected"
-   content_types:
-     - dcim.cable
-   deployment_types: [all]
+- name: Connected
+  color: "4caf50"
+  description: "Cable is connected"
+  content_types:
+    - dcim.cable
+  deployment_types: [all]
 
 - name: Active
   color: "4caf50"

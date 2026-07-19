@@ -20,9 +20,9 @@
     - dcim.device
   deployment_types: [all]
 
- - name: GPU
-   color: "76b900"
-   description: "GPU / compute server"
-   content_types:
-     - dcim.device
-   deployment_types: [all]
+- name: GPU
+  color: "76b900"
+  description: "GPU / compute server"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
