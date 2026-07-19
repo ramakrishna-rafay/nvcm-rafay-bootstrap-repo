@@ -27,6 +27,8 @@ from nautobot.dcim.models import (
     LocationType,
     Manufacturer,
     Platform,
+    Rack,
+    RackGroup,
 )
 from nautobot.extras.models import (
     ConfigContext,
@@ -132,6 +134,8 @@ class LoadBootstrapData(Job):
         self.load_namespaces()
         self.load_statuses()
         self.load_locations()
+        self.load_rack_groups()
+        self.load_racks()
         self.load_roles()
         self.load_tags()
         self.load_custom_fields()
@@ -773,6 +777,205 @@ class LoadBootstrapData(Job):
             self.logger.failure(
                 "Error reading locations file",
                 extra={"grouping": "locations"},
+            )
+            self.logger.debug(str(e))
+
+    def load_rack_groups(self):
+        """Load rack groups from YAML template (depends on locations)."""
+        self.logger.info("Loading Rack Groups", extra={"grouping": "rack_groups"})
+
+        rack_groups_file = self.data_path / "rack_groups.yaml"
+
+        if not rack_groups_file.exists():
+            self.logger.warning(f"Rack groups file not found: {rack_groups_file}")
+            return
+
+        try:
+            with open(rack_groups_file) as f:
+                rack_groups = yaml.safe_load(f)
+
+            if not rack_groups:
+                self.logger.warning("No rack groups found in file")
+                return
+
+            for rg_data in rack_groups:
+                try:
+                    name = rg_data.get("name")
+                    if not name:
+                        self.logger.warning("Skipping rack group with no name")
+                        continue
+
+                    if not self.should_load_item(rg_data, f"rack group '{name}'"):
+                        continue
+
+                    try:
+                        location = Location.objects.get(name=rg_data["location"])
+                    except (KeyError, Location.DoesNotExist):
+                        self.logger.warning(
+                            f"Skipping rack group '{name}': location "
+                            f"'{rg_data.get('location')}' not found",
+                            extra={"grouping": "rack_groups"},
+                        )
+                        continue
+
+                    parent = None
+                    if rg_data.get("parent"):
+                        try:
+                            parent = RackGroup.objects.get(name=rg_data["parent"])
+                        except RackGroup.DoesNotExist:
+                            self.logger.warning(
+                                f"Parent rack group not found for '{name}': {rg_data['parent']}",
+                                extra={"grouping": "rack_groups"},
+                            )
+
+                    rg, created = RackGroup.objects.update_or_create(
+                        name=name,
+                        location=location,
+                        defaults={
+                            "parent": parent,
+                            "description": rg_data.get("description", ""),
+                        },
+                    )
+
+                    if created:
+                        self.logger.success(
+                            f"Created rack group: {name}",
+                            extra={"grouping": "rack_groups", "object": rg},
+                        )
+                    else:
+                        self.logger.info(
+                            f"Rack group already exists: {name}",
+                            extra={"grouping": "rack_groups", "object": rg},
+                        )
+
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing rack group: {rg_data.get('name', 'unknown')}",
+                        extra={"grouping": "rack_groups"},
+                    )
+                    self.logger.debug(str(e))
+
+        except Exception as e:
+            self.logger.failure(
+                "Error reading rack groups file",
+                extra={"grouping": "rack_groups"},
+            )
+            self.logger.debug(str(e))
+
+    def load_racks(self):
+        """Load racks from YAML template (depends on locations, statuses, rack_groups)."""
+        self.logger.info("Loading Racks", extra={"grouping": "racks"})
+
+        racks_file = self.data_path / "racks.yaml"
+
+        if not racks_file.exists():
+            self.logger.warning(f"Racks file not found: {racks_file}")
+            return
+
+        try:
+            with open(racks_file) as f:
+                racks = yaml.safe_load(f)
+
+            if not racks:
+                self.logger.warning("No racks found in file")
+                return
+
+            for rack_data in racks:
+                try:
+                    name = rack_data.get("name")
+                    if not name:
+                        self.logger.warning("Skipping rack with no name")
+                        continue
+
+                    if not self.should_load_item(rack_data, f"rack '{name}'"):
+                        continue
+
+                    # required: location + status
+                    try:
+                        location = Location.objects.get(name=rack_data["location"])
+                    except (KeyError, Location.DoesNotExist):
+                        self.logger.warning(
+                            f"Skipping rack '{name}': location "
+                            f"'{rack_data.get('location')}' not found",
+                            extra={"grouping": "racks"},
+                        )
+                        continue
+                    try:
+                        status = Status.objects.get(name=rack_data.get("status", "Active"))
+                    except Status.DoesNotExist:
+                        self.logger.warning(
+                            f"Skipping rack '{name}': status '{rack_data.get('status')}' not found",
+                            extra={"grouping": "racks"},
+                        )
+                        continue
+
+                    # optional: rack_group, tenant, role
+                    rack_group = None
+                    if rack_data.get("rack_group"):
+                        try:
+                            rack_group = RackGroup.objects.get(name=rack_data["rack_group"])
+                        except RackGroup.DoesNotExist:
+                            self.logger.warning(
+                                f"Rack group not found for '{name}': {rack_data['rack_group']}",
+                                extra={"grouping": "racks"},
+                            )
+                    tenant = None
+                    if rack_data.get("tenant"):
+                        try:
+                            tenant = Tenant.objects.get(name=rack_data["tenant"])
+                        except Tenant.DoesNotExist:
+                            self.logger.warning(
+                                f"Tenant not found for rack '{name}': {rack_data['tenant']}",
+                                extra={"grouping": "racks"},
+                            )
+                    role = None
+                    if rack_data.get("role"):
+                        try:
+                            role = Role.objects.get(name=rack_data["role"])
+                        except Role.DoesNotExist:
+                            self.logger.warning(
+                                f"Role not found for rack '{name}': {rack_data['role']}",
+                                extra={"grouping": "racks"},
+                            )
+
+                    rack, created = Rack.objects.update_or_create(
+                        name=name,
+                        location=location,
+                        defaults={
+                            "rack_group": rack_group,
+                            "status": status,
+                            "tenant": tenant,
+                            "role": role,
+                            "u_height": rack_data.get("u_height", 42),
+                            "width": rack_data.get("width", 19),
+                            "type": rack_data.get("type", ""),
+                            "desc_units": rack_data.get("desc_units", False),
+                            "comments": rack_data.get("description", ""),
+                        },
+                    )
+
+                    if created:
+                        self.logger.success(
+                            f"Created rack: {name}",
+                            extra={"grouping": "racks", "object": rack},
+                        )
+                    else:
+                        self.logger.info(
+                            f"Rack already exists: {name}",
+                            extra={"grouping": "racks", "object": rack},
+                        )
+
+                except Exception as e:
+                    self.logger.error(
+                        f"Error processing rack: {rack_data.get('name', 'unknown')}",
+                        extra={"grouping": "racks"},
+                    )
+                    self.logger.debug(str(e))
+
+        except Exception as e:
+            self.logger.failure(
+                "Error reading racks file",
+                extra={"grouping": "racks"},
             )
             self.logger.debug(str(e))
 
