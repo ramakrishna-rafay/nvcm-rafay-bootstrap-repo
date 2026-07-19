@@ -1,0 +1,42 @@
+---
+- name: blr-net-rack01
+  location: blr-building001-room001
+  rack_group: blr-net-row
+  status: Active
+  u_height: 42
+  width: 19
+  type: 4-post-cabinet
+  desc_units: false
+  description: "Network rack — spines, leaves, border, OOB, DC-GW"
+  deployment_types: [all]
+
+- name: blr-gpu-rack01
+  location: blr-building001-room001
+  rack_group: blr-gpu-row
+  status: Active
+  u_height: 42
+  width: 19
+  type: 4-post-cabinet
+  description: "GPU compute rack 1"
+  deployment_types: [all]
+  
+- name: blr-gpu-rack02
+  location: blr-building001-room001
+  rack_group: blr-gpu-row
+  status: Active
+  u_height: 42
+  width: 19
+  type: 4-post-cabinet
+  description: "GPU compute rack 2"
+  deployment_types: [all]
+  
+- name: blr-stor-rack01
+  location: blr-building001-room001
+  rack_group: blr-stor-row
+  status: Active
+  u_height: 42
+  width: 19
+  type: 4-post-cabinet
+  description: "Storage rack 1"
+  deployment_types: [all]
+

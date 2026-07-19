@@ -1,0 +1,16 @@
+---
+- name: blr-net-row
+  location: blr-building001-room001
+  description: "Network row — spine/leaf/border/OOB/DC-GW"
+  deployment_types: [all]
+  
+- name: blr-gpu-row
+  location: blr-building001-room001
+  description: "GPU compute row"
+  deployment_types: [all]
+  
+- name: blr-stor-row
+  location: blr-building001-room001
+  description: "Storage row"  
+  deployment_types: [all]
+
