@@ -173,7 +173,7 @@ class LoadBootstrapData(Job):
                     if not self.should_load_item(mfg_data, f"manufacturer '{name}'"):
                         continue
 
-                    mfg, created = Manufacturer.objects.get_or_create(
+                    mfg, created = Manufacturer.objects.update_or_create(
                         name=name,
                         defaults={"description": mfg_data.get("description", "")},
                     )
@@ -220,7 +220,7 @@ class LoadBootstrapData(Job):
         if not self.should_load_item(dt_data, f"device type '{dt_data['model']}'"):
             return
 
-        device_type, created = DeviceType.objects.get_or_create(
+        device_type, created = DeviceType.objects.update_or_create(
             manufacturer=manufacturer,
             model=dt_data["model"],
             defaults={
@@ -316,7 +316,7 @@ class LoadBootstrapData(Job):
                     if not self.should_load_item(role_data, f"role '{name}'"):
                         continue
 
-                    role, created = Role.objects.get_or_create(
+                    role, created = Role.objects.update_or_create(
                         name=name,
                         defaults={
                             "color": role_data.get("color", "grey"),
@@ -508,7 +508,7 @@ class LoadBootstrapData(Job):
                                 extra={"grouping": "platforms"},
                             )
 
-                    platform, created = Platform.objects.get_or_create(
+                    platform, created = Platform.objects.update_or_create(
                         name=name,
                         defaults={
                             "manufacturer": manufacturer,
@@ -568,7 +568,7 @@ class LoadBootstrapData(Job):
                     if not self.should_load_item(tenant_data, f"tenant '{name}'"):
                         continue
 
-                    tenant, created = Tenant.objects.get_or_create(
+                    tenant, created = Tenant.objects.update_or_create(
                         name=name,
                         defaults={"description": tenant_data.get("description", "")},
                     )
@@ -635,7 +635,7 @@ class LoadBootstrapData(Job):
                                 extra={"grouping": "location_types"},
                             )
 
-                    lt, created = LocationType.objects.get_or_create(
+                    lt, created = LocationType.objects.update_or_create(
                         name=name,
                         defaults={
                             "description": lt_data.get("description", ""),
@@ -740,7 +740,7 @@ class LoadBootstrapData(Job):
                                 extra={"grouping": "locations"},
                             )
 
-                    loc, created = Location.objects.get_or_create(
+                    loc, created = Location.objects.update_or_create(
                         name=name,
                         location_type=location_type,
                         defaults={
@@ -805,7 +805,7 @@ class LoadBootstrapData(Job):
                     if not self.should_load_item(ns_data, f"namespace '{name}'"):
                         continue
 
-                    ns, created = Namespace.objects.get_or_create(
+                    ns, created = Namespace.objects.update_or_create(
                         name=name,
                         defaults={"description": ns_data.get("description", "")},
                     )
