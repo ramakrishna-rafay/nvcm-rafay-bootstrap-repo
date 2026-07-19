@@ -1,4 +1,17 @@
 ---
+- name: Rafay
+  location_type: Provider
+  status: Active
+  description: "Rafay (operator)"
+  deployment_types: [all]
+
+- name: India
+  location_type: Region
+  parent: Rafay
+  status: Active
+  description: "India region"
+  deployment_types: [all]
+
 - name: blr-dc01
   location_type: Site
   status: Active

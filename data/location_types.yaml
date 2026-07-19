@@ -1,7 +1,21 @@
 ---
+- name: Provider
+  description: "Top-level provider / operator"
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+
+- name: Region
+  description: "Geographic region"
+  parent: Provider
+  content_types:
+    - dcim.device
+  deployment_types: [all]
+    
 - name: Site
   description: "Physical or logical site"
-  content_types:
+  parent: Region          # <-- ADD (Site currently has no parent)
+  content_types:          
     - dcim.device
     - dcim.rack
   deployment_types: [all]
