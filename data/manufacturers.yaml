@@ -3,3 +3,6 @@
   description: "NVIDIA Networking"
   deployment_types: [all]
 
+- name: Generic
+  description: "Generic vendor (compute/server stand-ins)"
+  deployment_types: [all]

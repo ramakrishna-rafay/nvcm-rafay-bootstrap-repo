@@ -1,0 +1,16 @@
+--- 
+- name: prefix-to-gateway
+  key: prefix_to_gateway
+  label: prefix-to-gateway
+  type: one-to-one
+  source_type: ipam.prefix
+  destination_type: ipam.ipaddress
+  deployment_types: [all]
+    
+- name: vlan-to-helper-address
+  key: vlan_to_helper_address
+  label: vlan-to-helper-address
+  type: many-to-many
+  source_type: ipam.vlan
+  destination_type: ipam.ipaddress
+  deployment_types: [all]

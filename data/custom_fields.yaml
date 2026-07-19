@@ -1,0 +1,8 @@
+---
+- key: assigned_since
+  label: "Assigned Since"
+  type: text
+  description: "Timestamp when this device (e.g. a GPU node) was allocated to its current tenant."
+  content_types:
+    - dcim.device
+  deployment_types: [all]

@@ -1,0 +1,16 @@
+---
+manufacturer: Generic
+model: Generic Server
+slug: generic-server
+u_height: 1
+is_full_depth: true
+comments: "Generic GPU/compute server stand-in"
+deployment_types: [all]
+interfaces:
+  - name: mgmt0
+    type: 1000base-t
+    mgmt_only: true
+  - name: data0
+    type: 25gbase-x-sfp28
+    description: "Tenant data interface"
+

@@ -6,3 +6,6 @@
   napalm_driver: ""
   deployment_types: [all]
 
+ - name: ubuntu
+   description: "Ubuntu Linux (GPU/compute server OS)"
+   deployment_types: [all]
