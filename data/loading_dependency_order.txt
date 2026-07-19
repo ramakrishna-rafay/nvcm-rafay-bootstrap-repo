@@ -1,11 +1,22 @@
-1. manufacturers.yaml       (no dependencies)
-2. location_types.yaml      (no dependencies)
-3. statuses.yaml            (no dependencies)
-4. namespaces.yaml          (no dependencies)
-5. platforms.yaml           (depends on manufacturers)
-6. roles.yaml               (no dependencies)
-7. tags.yaml                (no dependencies)
-8. tenants.yaml             (no dependencies)
-9. locations.yaml           (depends on location_types, statuses, tenants)
-10. device_types/           (depends on manufacturers)
+Bootstrap load order — matches LoadBootstrapData.run() in jobs/load_bootstrap_data.py.
+Each item loads after its dependencies. All loaders are idempotent (update_or_create):
+re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manual cleanup).
 
+ 1. manufacturers.yaml           (no dependencies)
+ 2. tenants.yaml                 (no dependencies)
+ 3. location_types.yaml          (no dependencies; self-referential chain
+                                  Provider -> Region -> Site -> Building -> Room)
+ 4. namespaces.yaml              (no dependencies)
+ 5. statuses.yaml                (no dependencies)
+ 6. locations.yaml               (depends on location_types, statuses, tenants)
+ 7. rack_groups.yaml             (depends on locations)
+ 8. racks.yaml                   (depends on locations, statuses, rack_groups; optional tenant, role)
+ 9. roles.yaml                   (no dependencies)
+10. tags.yaml                    (no dependencies)
+11. custom_fields.yaml           (no dependencies)
+12. platforms.yaml               (depends on manufacturers)
+13. device_types/                (depends on manufacturers)
+14. relationships.yaml           (no dependencies)
+15. config_context_schemas.yaml  (no dependencies)          [optional - no-op if file absent]
+16. config_contexts.yaml         (depends on config_context_schemas; roles/locations if scoped)
+                                                            [optional - no-op if file absent]
