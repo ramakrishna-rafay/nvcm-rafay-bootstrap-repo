@@ -36,10 +36,3 @@
     - dcim.rack
   deployment_types: [all]
 
-- name: Rack
-  description: "Rack within a room"
-  parent: Room
-  content_types:
-    - dcim.device
-  deployment_types: [all]
-
