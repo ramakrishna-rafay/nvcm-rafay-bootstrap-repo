@@ -1,0 +1,55 @@
+---
+- name: stc-device-config-context
+  description: "Validates the STC fabric device config_context — permissive: type-checks known keys, allows extras, requires none (roles carry different subsets)."
+  data_schema:
+    "$schema": "http://json-schema.org/draft-07/schema#"
+    title: "STC device config_context"
+    type: object
+    additionalProperties: true
+    properties:
+      asn:
+        type: integer
+      loopback:
+        type: string
+      fabric_ports:
+        type: array
+        items:
+          type: string
+      vlan:
+        type: integer
+      l2vni:
+        type: integer
+      roce:
+        type: boolean
+      intended-firmware:
+        type: object
+      tenants:
+        type: array
+        items:
+          type: object
+      server_ports:
+        type: array
+        items:
+          type: object
+          properties:
+            port:
+              type: string
+            vlan:
+              type: integer
+            server:
+              type: string
+            vrf:
+              type: string
+      l2trunk_vlans:
+        type: array
+        items:
+          type: integer
+      l2trunk_ports:
+        type: array
+        items:
+          type: string
+      dcgw:
+        type: object
+      vfw:
+        type: object
+  deployment_types: [all]
