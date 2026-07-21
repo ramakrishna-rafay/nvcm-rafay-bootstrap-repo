@@ -76,28 +76,31 @@ def _restore_tenants(job, saved):
             )
 
 
-def _log_change_summary(job):
-    """Log a human summary of what this run added / updated / adopted, into the Job Result.
+def _write_change_summary(job, environment):
+    """Write a per-model change summary to the Job Result — added / updated / checked.
 
-    Design Builder's own per-object logs go to the pod's stdout (the `nautobot_design_builder`
-    structlog logger), not the Nautobot Job Result — which is why the Job Result otherwise looks
-    empty. Here we read this run's ChangeSet and summarize it via ``job.logger`` so it shows in the
-    UI. A dry run rolls the ChangeSet back, so this reports only on a committed run. Wrapped so a
-    reporting hiccup can never fail an otherwise-successful deployment.
+    Why direct JobLogEntry rows instead of ``self.logger``: inside a DesignJob, ``self.logger`` is
+    routed to the pod's stdout (the Design Builder ``Environment`` logger), so ``self.logger`` calls
+    — even Design Builder's own "Building…/Updated…" lines — never reach the Nautobot Job Result on
+    a successful run. Inserting JobLogEntry rows directly makes the summary show in the UI.
+
+    Called from ``post_implementation``, which Design Builder invokes only on a committed run
+    (never a dry run) inside the design transaction, so these rows persist with the change set.
+    Wrapped so a reporting hiccup can never fail an otherwise-successful deployment.
     """
     try:
         from collections import defaultdict
 
+        from nautobot.extras.models import JobLogEntry
         from nautobot_design_builder.models import ChangeRecord, ChangeSet
 
-        change_set = (
-            ChangeSet.objects.filter(job_result=job.job_result).order_by("-created").first()
-        )
+        # Prefer the change set the build environment used; fall back to this run's change set.
+        change_set = getattr(getattr(environment, "journal", None), "change_set", None)
         if change_set is None:
-            job.logger.info(
-                "No change set persisted for this run — a dry run rolls the transaction back; the "
-                "applied change summary appears when you run with Dry run unchecked (commit)."
+            change_set = (
+                ChangeSet.objects.filter(job_result=job.job_result).order_by("-created").first()
             )
+        if change_set is None:
             return
 
         added, updated, adopted = defaultdict(int), defaultdict(int), defaultdict(int)
@@ -110,15 +113,23 @@ def _log_change_summary(job):
             else:
                 adopted[model] += 1        # pre-existing object, referenced, no change needed
 
+        def emit(message, level="info"):
+            JobLogEntry.objects.create(
+                job_result=job.job_result,
+                log_level=level,
+                grouping="change-summary",
+                message=message,
+            )
+
         total = sum(added.values()) + sum(updated.values()) + sum(adopted.values())
-        job.logger.info("Change summary — %d object(s) processed by this deployment:", total)
+        emit(f"Change summary — {total} object(s) processed by this deployment:", "success")
         for label, bucket in (("added", added), ("updated", updated), ("checked (no change)", adopted)):
             for model, count in sorted(bucket.items()):
-                job.logger.info("  %s: %d × %s", label, count, model)
+                emit(f"    {label}: {count} × {model}")
         if not total:
-            job.logger.info("  (nothing to do — fabric already matches intent)")
-    except Exception as exc:  # never let reporting break a successful deployment
-        job.logger.debug("change summary unavailable: %s", exc)
+            emit("    (nothing to do — fabric already matches intent)")
+    except Exception:  # never let reporting break a successful deployment
+        pass
 
 
 class STCFabricDevices(DesignJob):
@@ -129,8 +140,11 @@ class STCFabricDevices(DesignJob):
         saved = _snapshot_tenants()
         result = super().run(*args, **kwargs)
         _restore_tenants(self, saved)
-        _log_change_summary(self)
         return result
+
+    def post_implementation(self, context, environment):
+        """Log the change summary (committed runs only)."""
+        _write_change_summary(self, environment)
 
     class Meta:
         """Metadata."""
@@ -162,11 +176,9 @@ switches is done separately by the NVCM render pipeline + DeployWorkflow.
 class STCFabricCables(DesignJob):
     """Build ONLY the STC fabric physical cable design."""
 
-    def run(self, *args, **kwargs):
-        """Apply the cable design, then log a change summary."""
-        result = super().run(*args, **kwargs)
-        _log_change_summary(self)
-        return result
+    def post_implementation(self, context, environment):
+        """Log the change summary (committed runs only)."""
+        _write_change_summary(self, environment)
 
     class Meta:
         """Metadata."""
@@ -203,8 +215,11 @@ class STCFabricDevicesAndCables(DesignJob):
         saved = _snapshot_tenants()
         result = super().run(*args, **kwargs)
         _restore_tenants(self, saved)
-        _log_change_summary(self)
         return result
+
+    def post_implementation(self, context, environment):
+        """Log the change summary (committed runs only)."""
+        _write_change_summary(self, environment)
 
     class Meta:
         """Metadata."""
