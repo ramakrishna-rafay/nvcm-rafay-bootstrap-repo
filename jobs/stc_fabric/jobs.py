@@ -76,6 +76,51 @@ def _restore_tenants(job, saved):
             )
 
 
+def _log_change_summary(job):
+    """Log a human summary of what this run added / updated / adopted, into the Job Result.
+
+    Design Builder's own per-object logs go to the pod's stdout (the `nautobot_design_builder`
+    structlog logger), not the Nautobot Job Result — which is why the Job Result otherwise looks
+    empty. Here we read this run's ChangeSet and summarize it via ``job.logger`` so it shows in the
+    UI. A dry run rolls the ChangeSet back, so this reports only on a committed run. Wrapped so a
+    reporting hiccup can never fail an otherwise-successful deployment.
+    """
+    try:
+        from collections import defaultdict
+
+        from nautobot_design_builder.models import ChangeRecord, ChangeSet
+
+        change_set = (
+            ChangeSet.objects.filter(job_result=job.job_result).order_by("-created").first()
+        )
+        if change_set is None:
+            job.logger.info(
+                "No change set persisted for this run — a dry run rolls the transaction back; the "
+                "applied change summary appears when you run with Dry run unchecked (commit)."
+            )
+            return
+
+        added, updated, adopted = defaultdict(int), defaultdict(int), defaultdict(int)
+        for record in ChangeRecord.objects.filter(change_set=change_set):
+            model = record._design_object_type.model if record._design_object_type else "object"
+            if record.full_control:
+                added[model] += 1          # created + owned by this design
+            elif record.changes:
+                updated[model] += 1        # pre-existing object, some fields changed
+            else:
+                adopted[model] += 1        # pre-existing object, referenced, no change needed
+
+        total = sum(added.values()) + sum(updated.values()) + sum(adopted.values())
+        job.logger.info("Change summary — %d object(s) processed by this deployment:", total)
+        for label, bucket in (("added", added), ("updated", updated), ("checked (no change)", adopted)):
+            for model, count in sorted(bucket.items()):
+                job.logger.info("  %s: %d × %s", label, count, model)
+        if not total:
+            job.logger.info("  (nothing to do — fabric already matches intent)")
+    except Exception as exc:  # never let reporting break a successful deployment
+        job.logger.debug("change summary unavailable: %s", exc)
+
+
 class STCFabricDevices(DesignJob):
     """Build ONLY the STC fabric devices/underlay."""
 
@@ -84,6 +129,7 @@ class STCFabricDevices(DesignJob):
         saved = _snapshot_tenants()
         result = super().run(*args, **kwargs)
         _restore_tenants(self, saved)
+        _log_change_summary(self)
         return result
 
     class Meta:
@@ -115,6 +161,12 @@ switches is done separately by the NVCM render pipeline + DeployWorkflow.
 
 class STCFabricCables(DesignJob):
     """Build ONLY the STC fabric physical cable design."""
+
+    def run(self, *args, **kwargs):
+        """Apply the cable design, then log a change summary."""
+        result = super().run(*args, **kwargs)
+        _log_change_summary(self)
+        return result
 
     class Meta:
         """Metadata."""
@@ -151,6 +203,7 @@ class STCFabricDevicesAndCables(DesignJob):
         saved = _snapshot_tenants()
         result = super().run(*args, **kwargs)
         _restore_tenants(self, saved)
+        _log_change_summary(self)
         return result
 
     class Meta:
