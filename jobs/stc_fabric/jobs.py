@@ -43,39 +43,48 @@ UNDERLAY = "designs/10-underlay.yaml.j2"
 CABLES = "designs/20-cables.yaml.j2"
 
 
-class _PreserveTenantsMixin:
-    """Snapshot/restore the per-tenant overlay across an underlay apply.
-
-    The underlay design rewrites each leaf's ``local_config_context_data``, which would drop the
-    ``tenants`` overlay key owned by the per-tenant DesignJob. Any job that applies the underlay
-    mixes this in, so re-running/updating the fabric never clobbers a tenant onboarding. (Tenants
-    are owned by their own deployment; the fabric jobs just must not destroy them.) Cables-only
-    runs do not touch config_context, so that job does not need this.
-    """
-
-    def run(self, *args, **kwargs):  # noqa: D102
-        saved = {
-            d.name: (d.local_config_context_data or {}).get("tenants")
-            for d in Device.objects.filter(local_config_context_data__has_key="tenants")
-        }
-        result = super().run(*args, **kwargs)
-        for dev_name, tenants in saved.items():
-            if not tenants:
-                continue
-            d = Device.objects.get(name=dev_name)
-            cc = dict(d.local_config_context_data or {})
-            if cc.get("tenants") != tenants:
-                cc["tenants"] = tenants
-                d.local_config_context_data = cc
-                d.save()
-                self.logger.info(
-                    "preserved %d tenant(s) on %s across underlay apply", len(tenants), dev_name
-                )
-        return result
+# Tenant-overlay preservation, as module-level helpers rather than a mixin.
+#
+# IMPORTANT: each DesignJob below inherits DesignJob *directly* (single inheritance). Design
+# Builder's render() locates the design-template directory by walking `cls.__bases__[0]` up to
+# DesignJob; a mixin as the first base would divert that walk to `object` (module 'builtins',
+# which has no __file__) and crash. So the shared logic lives in functions, and each job keeps a
+# thin run() override — matching the original working pattern.
 
 
-class STCFabricDevices(_PreserveTenantsMixin, DesignJob):
+def _snapshot_tenants():
+    """Capture each device's per-tenant overlay before an underlay apply rewrites config_context."""
+    return {
+        d.name: (d.local_config_context_data or {}).get("tenants")
+        for d in Device.objects.filter(local_config_context_data__has_key="tenants")
+    }
+
+
+def _restore_tenants(job, saved):
+    """Re-apply the overlay the underlay design would otherwise have dropped."""
+    for dev_name, tenants in saved.items():
+        if not tenants:
+            continue
+        d = Device.objects.get(name=dev_name)
+        cc = dict(d.local_config_context_data or {})
+        if cc.get("tenants") != tenants:
+            cc["tenants"] = tenants
+            d.local_config_context_data = cc
+            d.save()
+            job.logger.info(
+                "preserved %d tenant(s) on %s across underlay apply", len(tenants), dev_name
+            )
+
+
+class STCFabricDevices(DesignJob):
     """Build ONLY the STC fabric devices/underlay."""
+
+    def run(self, *args, **kwargs):
+        """Apply the underlay, preserving any per-tenant overlay across the rewrite."""
+        saved = _snapshot_tenants()
+        result = super().run(*args, **kwargs)
+        _restore_tenants(self, saved)
+        return result
 
     class Meta:
         """Metadata."""
@@ -134,8 +143,15 @@ never duplicates). **Run 'STC Fabric — Devices' first** so the interfaces exis
 """
 
 
-class STCFabricDevicesAndCables(_PreserveTenantsMixin, DesignJob):
+class STCFabricDevicesAndCables(DesignJob):
     """Build the STC fabric devices/underlay AND the cable design in one deployment."""
+
+    def run(self, *args, **kwargs):
+        """Apply underlay + cables, preserving any per-tenant overlay across the rewrite."""
+        saved = _snapshot_tenants()
+        result = super().run(*args, **kwargs)
+        _restore_tenants(self, saved)
+        return result
 
     class Meta:
         """Metadata."""
