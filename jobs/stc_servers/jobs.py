@@ -5,7 +5,7 @@
 #   2026-07-22  Ramakrishna, Rafay  Initial version — server registration as a GitOps DesignJob
 #                                    (parity with the STC Fabric jobs).
 #
-"""STC Servers — Design Builder DesignJob (register GPU/compute servers in the free pool).
+"""STC Server — Register: Design Builder DesignJob (register GPU/compute servers in the free pool).
 
 Mirrors the STC Fabric jobs: a tracked, decommissionable DesignJob run from the Nautobot Jobs UI /
 REST API. It registers each GPU server (device + mgmt0/data0 interfaces, data0's MAC) and the
@@ -27,7 +27,11 @@ from nautobot_design_builder.design_job import DesignJob
 
 from .context import STCServersContext
 
-name = "STC Servers"
+# Group under the SAME "STC Server" grouping as the existing Attach/Detach/Move jobs so this
+# Register job appears alongside them in the Nautobot Jobs UI. Nautobot groups by this module-level
+# `name`, so a job delivered here (bootstrap git repo) and the JOBS_ROOT-installed lifecycle jobs
+# all land in one "STC Server" group even though they ship via different mechanisms.
+name = "STC Server"
 
 SERVERS = "designs/servers.yaml.j2"
 
@@ -98,7 +102,7 @@ class STCServersRegister(DesignJob):
     class Meta:
         """Metadata."""
 
-        name = "STC Servers — Register"
+        name = "STC Server — Register"
         version = "1.0.0"
         commit_default = False
         design_mode = DesignModeChoices.DEPLOYMENT
