@@ -23,12 +23,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.7"
-            ip_address:
-              "!create_or_update:address": "172.23.0.7/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.7/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -67,12 +65,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.8"
-            ip_address:
-              "!create_or_update:address": "172.23.0.8/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.8/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -113,12 +109,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.1"
-            ip_address:
-              "!create_or_update:address": "172.23.0.1/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.1/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -143,12 +137,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.2"
-            ip_address:
-              "!create_or_update:address": "172.23.0.2/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.2/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -173,12 +165,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.3"
-            ip_address:
-              "!create_or_update:address": "172.23.0.3/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.3/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -203,12 +193,10 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.4"
-            ip_address:
-              "!create_or_update:address": "172.23.0.4/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.4/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
@@ -225,7 +213,7 @@ devices:
     local_config_context_data:
       asn: 65305
       loopback: "172.23.0.5"
-      fabric_ports: ["swp1", "swp2"]
+      fabric_ports: ["swp1", "swp2", "swp5", "swp6", "swp7"]
       vlan: 100
       l2vni: 10100
       intended-firmware: {version: "5.6.0"}
@@ -233,17 +221,27 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.5"
-            ip_address:
-              "!create_or_update:address": "172.23.0.5/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.5/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
         status__name: "Active"
       - "!create_or_update:name": "swp2"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp5"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp6"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp7"
         type: "other"
         mtu: 9216
         status__name: "Active"
@@ -255,6 +253,46 @@ devices:
     local_config_context_data:
       asn: 65306
       loopback: "172.23.0.6"
+      fabric_ports: ["swp1", "swp2", "swp5", "swp6", "swp7"]
+      vlan: 100
+      l2vni: 10100
+      intended-firmware: {version: "5.6.0"}
+    interfaces:
+      - "!create_or_update:name": "lo"
+        type: "virtual"
+        status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.6/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
+      - "!create_or_update:name": "swp1"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp2"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp5"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp6"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp7"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+  - "!create_or_update:name": "RMDC-GPU-OOB01"
+    location__name: "blr-dc01"
+    role__name: "leaf"
+    status__name: "Active"
+    device_type__model: "Cumulus VX"
+    local_config_context_data:
+      asn: 65308
+      loopback: "172.23.0.9"
       fabric_ports: ["swp1", "swp2"]
       vlan: 100
       l2vni: 10100
@@ -263,12 +301,66 @@ devices:
       - "!create_or_update:name": "lo"
         type: "virtual"
         status__name: "Active"
-        ip_address_assignments:
-          - "!create_or_update:ip_address__host": "172.23.0.6"
-            ip_address:
-              "!create_or_update:address": "172.23.0.6/32"
-              "!create_or_update:parent": "!ref:loopback_pool"
-              status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.9/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
+      - "!create_or_update:name": "swp1"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp2"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+  - "!create_or_update:name": "RMDC-GPU-OOB02"
+    location__name: "blr-dc01"
+    role__name: "leaf"
+    status__name: "Active"
+    device_type__model: "Cumulus VX"
+    local_config_context_data:
+      asn: 65309
+      loopback: "172.23.0.10"
+      fabric_ports: ["swp1", "swp2"]
+      vlan: 100
+      l2vni: 10100
+      intended-firmware: {version: "5.6.0"}
+    interfaces:
+      - "!create_or_update:name": "lo"
+        type: "virtual"
+        status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.10/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
+      - "!create_or_update:name": "swp1"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+      - "!create_or_update:name": "swp2"
+        type: "other"
+        mtu: 9216
+        status__name: "Active"
+  - "!create_or_update:name": "RMDC-GPU-OOB03"
+    location__name: "blr-dc01"
+    role__name: "leaf"
+    status__name: "Active"
+    device_type__model: "Cumulus VX"
+    local_config_context_data:
+      asn: 65310
+      loopback: "172.23.0.11"
+      fabric_ports: ["swp1", "swp2"]
+      vlan: 100
+      l2vni: 10100
+      intended-firmware: {version: "5.6.0"}
+    interfaces:
+      - "!create_or_update:name": "lo"
+        type: "virtual"
+        status__name: "Active"
+        ip_addresses:
+          - "!create_or_update:address": "172.23.0.11/32"
+            "!create_or_update:parent": "!ref:loopback_pool"
+            status__name: "Active"
       - "!create_or_update:name": "swp1"
         type: "other"
         mtu: 9216
