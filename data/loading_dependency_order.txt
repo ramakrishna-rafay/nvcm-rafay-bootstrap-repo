@@ -20,3 +20,7 @@ re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manu
 15. config_context_schemas.yaml  (no dependencies)          [optional - no-op if file absent]
 16. config_contexts.yaml         (depends on config_context_schemas; roles/locations if scoped)
                                                             [optional - no-op if file absent]
+17. device_placements.yaml       (rack elevations: device -> rack/position/face). Runs LAST — needs
+                                  the DEVICES to already exist (created by the fabric/server DesignJobs),
+                                  so run/re-run this after them; a missing device is skipped, not errored.
+                                  Entries with `skip: true` are UI-managed and ignored (e.g. the spines).

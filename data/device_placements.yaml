@@ -1,0 +1,86 @@
+---
+# Physical rack elevations for the STC devices: device -> rack / U-position / face.
+#
+# This is INVENTORY data (where a box physically sits), kept in one map independent of the
+# render-intent designs. Applied idempotently by LoadBootstrapData.load_device_placements():
+# it updates rack/position/face on the EXISTING Device.
+#
+# Ordering: devices are created by the fabric/server DesignJobs, so run/re-run this AFTER them.
+# A device not found yet is skipped with a log line (not an error).
+#
+# skip: true  => managed manually (via the Nautobot UI) — GitOps IGNORES it. The two spines were
+#                placed by hand, so they carry skip: true (documented here, but not touched on apply).
+
+# --- blr-net-rack01 : spine pair + border leaves + OOB + DC-GW + vFW ---
+- device: RMDC-GPU-SETH01
+  rack: blr-net-rack01
+  position: 42
+  face: front
+  skip: true            # UI-managed (placed by hand) — GitOps ignores
+- device: RMDC-GPU-SETH02
+  rack: blr-net-rack01
+  position: 41
+  face: front
+  skip: true            # UI-managed (placed by hand) — GitOps ignores
+- device: RMDC-GPU-LETH05
+  rack: blr-net-rack01
+  position: 40
+  face: front
+- device: RMDC-GPU-LETH06
+  rack: blr-net-rack01
+  position: 39
+  face: front
+- device: RMDC-GPU-OOB01
+  rack: blr-net-rack01
+  position: 38
+  face: front
+- device: RMDC-GPU-OOB02
+  rack: blr-net-rack01
+  position: 37
+  face: front
+- device: RMDC-GPU-OOB03
+  rack: blr-net-rack01
+  position: 36
+  face: front
+- device: RMDC-DC-R-01
+  rack: blr-net-rack01
+  position: 35
+  face: front
+- device: RMDC-DC-R-02
+  rack: blr-net-rack01
+  position: 34
+  face: front
+- device: RMDC-VFW-01
+  rack: blr-net-rack01
+  position: 33
+  face: front
+
+# --- blr-gpu-rack01 : compute leaf (ToR) + GPU server ---
+- device: RMDC-GPU-LETH01
+  rack: blr-gpu-rack01
+  position: 42
+  face: front
+- device: gpu-01
+  rack: blr-gpu-rack01
+  position: 1
+  face: front
+
+# --- blr-gpu-rack02 : compute leaf (ToR) + GPU server ---
+- device: RMDC-GPU-LETH02
+  rack: blr-gpu-rack02
+  position: 42
+  face: front
+- device: gpu-02
+  rack: blr-gpu-rack02
+  position: 1
+  face: front
+
+# --- blr-stor-rack01 : storage leaves ---
+- device: RMDC-GPU-LETH03
+  rack: blr-stor-rack01
+  position: 42
+  face: front
+- device: RMDC-GPU-LETH04
+  rack: blr-stor-rack01
+  position: 41
+  face: front

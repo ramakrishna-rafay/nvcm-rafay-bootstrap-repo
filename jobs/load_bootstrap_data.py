@@ -22,6 +22,7 @@ from django.contrib.contenttypes.models import ContentType
 from nautobot.apps.jobs import Job, register_jobs
 from nautobot.core.models.fields import slugify_dashes_to_underscores
 from nautobot.dcim.models import (
+    Device,
     DeviceType,
     Location,
     LocationType,
@@ -144,9 +145,76 @@ class LoadBootstrapData(Job):
         self.load_relationships()
         self.load_config_context_schemas()
         self.load_config_contexts()
+        # Physical rack elevations — runs last: needs the devices to already exist (created by the
+        # fabric/server DesignJobs). Missing devices are skipped, not errored.
+        self.load_device_placements()
 
         self.logger.info("Bootstrap Data Load Complete!", extra={"grouping": "bootstrap"})
         return "Bootstrap data load completed successfully"
+
+    def load_device_placements(self):
+        """Place devices into racks (rack / U-position / face) from data/device_placements.yaml.
+
+        Physical rack elevations are inventory data, kept in one map independent of the render-intent
+        designs. Idempotent: updates rack/position/face on the EXISTING Device (devices are created by
+        the fabric/server DesignJobs, so run/re-run this AFTER them — a device not found yet is skipped
+        with a log line, not an error). Entries with `skip: true` are managed manually (UI) and are
+        ignored here. Each entry is isolated: one failure (e.g. a U-position overlap) never blocks the rest.
+        """
+        grp = {"grouping": "device_placements"}
+        self.logger.info("Loading Device Placements (rack elevations)", extra=grp)
+
+        placements_file = self.data_path / "device_placements.yaml"
+        if not placements_file.exists():
+            self.logger.warning(f"Device placements file not found: {placements_file}", extra=grp)
+            return
+
+        try:
+            with open(placements_file) as f:
+                placements = yaml.safe_load(f) or []
+        except Exception as e:
+            self.logger.failure("Error reading device placements file", extra=grp)
+            self.logger.debug(str(e))
+            return
+
+        for entry in placements:
+            entry = entry or {}
+            name = entry.get("device")
+            if not name:
+                self.logger.warning("Skipping placement with no device name", extra=grp)
+                continue
+            if not self.should_load_item(entry, name):
+                continue
+            if entry.get("skip"):
+                self.logger.info(f"Skipping {name} — manually managed (skip: true)", extra=grp)
+                continue
+            try:
+                device = Device.objects.get(name=name)
+            except Device.DoesNotExist:
+                self.logger.warning(
+                    f"Device {name} not found yet (run after the fabric/server jobs) — skipping", extra=grp
+                )
+                continue
+
+            rack_name = entry.get("rack")
+            rack = Rack.objects.filter(name=rack_name, location=device.location).first() or (
+                Rack.objects.filter(name=rack_name).first() if rack_name else None
+            )
+            if not rack:
+                self.logger.warning(f"Rack {rack_name!r} not found for {name}; skipping", extra=grp)
+                continue
+
+            try:
+                device.rack = rack
+                device.position = entry.get("position")
+                device.face = entry.get("face", "front")
+                device.validated_save()
+                self.logger.success(
+                    f"Placed {name} -> {rack.name} U{device.position} {device.face}", extra=grp
+                )
+            except Exception as e:  # e.g. U-position overlap — isolate, keep going
+                self.logger.error(f"Could not place {name} in {rack.name}: {e}", extra=grp)
+                self.logger.debug(str(e))
 
     def load_manufacturers(self):
         """Load manufacturers from YAML template."""
