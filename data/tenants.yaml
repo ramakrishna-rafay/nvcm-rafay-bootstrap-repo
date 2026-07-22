@@ -1,5 +1,297 @@
----
-- name: MyOrgRafay
-  description: "My organization Rafay tenant"
+# STC automated tenant pool (T3..T100). Pure STC — no org/placeholder tenants.
+# Per-tenant network policy (VLAN/VNI/subnet/VRF/PKey) is f(T) in allocations.py (== STCS xlsx),
+# applied to leaf config_context at onboard — NOT stored here. This file holds tenant identities only.
+- name: tenant3
+  description: "STC tenant 3 — HGX VLAN 112/L2VNI 100112/172.23.128.0/24, NFS VLAN 312, L3VNI 300003, VRF tenant3, PKey 0x8003"
   deployment_types: [all]
-
+- name: tenant4
+  description: "STC tenant 4 — HGX VLAN 113/L2VNI 100113/172.23.129.0/24, NFS VLAN 313, L3VNI 300004, VRF tenant4, PKey 0x8004"
+  deployment_types: [all]
+- name: tenant5
+  description: "STC tenant 5 — HGX VLAN 114/L2VNI 100114/172.23.130.0/24, NFS VLAN 314, L3VNI 300005, VRF tenant5, PKey 0x8005"
+  deployment_types: [all]
+- name: tenant6
+  description: "STC tenant 6 — HGX VLAN 115/L2VNI 100115/172.23.131.0/24, NFS VLAN 315, L3VNI 300006, VRF tenant6, PKey 0x8006"
+  deployment_types: [all]
+- name: tenant7
+  description: "STC tenant 7 — HGX VLAN 116/L2VNI 100116/172.23.132.0/24, NFS VLAN 316, L3VNI 300007, VRF tenant7, PKey 0x8007"
+  deployment_types: [all]
+- name: tenant8
+  description: "STC tenant 8 — HGX VLAN 117/L2VNI 100117/172.23.133.0/24, NFS VLAN 317, L3VNI 300008, VRF tenant8, PKey 0x8008"
+  deployment_types: [all]
+- name: tenant9
+  description: "STC tenant 9 — HGX VLAN 118/L2VNI 100118/172.23.134.0/24, NFS VLAN 318, L3VNI 300009, VRF tenant9, PKey 0x8009"
+  deployment_types: [all]
+- name: tenant10
+  description: "STC tenant 10 — HGX VLAN 119/L2VNI 100119/172.23.135.0/24, NFS VLAN 319, L3VNI 300010, VRF tenant10, PKey 0x800A"
+  deployment_types: [all]
+- name: tenant11
+  description: "STC tenant 11 — HGX VLAN 120/L2VNI 100120/172.23.136.0/24, NFS VLAN 320, L3VNI 300011, VRF tenant11, PKey 0x800B"
+  deployment_types: [all]
+- name: tenant12
+  description: "STC tenant 12 — HGX VLAN 121/L2VNI 100121/172.23.137.0/24, NFS VLAN 321, L3VNI 300012, VRF tenant12, PKey 0x800C"
+  deployment_types: [all]
+- name: tenant13
+  description: "STC tenant 13 — HGX VLAN 122/L2VNI 100122/172.23.138.0/24, NFS VLAN 322, L3VNI 300013, VRF tenant13, PKey 0x800D"
+  deployment_types: [all]
+- name: tenant14
+  description: "STC tenant 14 — HGX VLAN 123/L2VNI 100123/172.23.139.0/24, NFS VLAN 323, L3VNI 300014, VRF tenant14, PKey 0x800E"
+  deployment_types: [all]
+- name: tenant15
+  description: "STC tenant 15 — HGX VLAN 124/L2VNI 100124/172.23.140.0/24, NFS VLAN 324, L3VNI 300015, VRF tenant15, PKey 0x800F"
+  deployment_types: [all]
+- name: tenant16
+  description: "STC tenant 16 — HGX VLAN 125/L2VNI 100125/172.23.141.0/24, NFS VLAN 325, L3VNI 300016, VRF tenant16, PKey 0x8010"
+  deployment_types: [all]
+- name: tenant17
+  description: "STC tenant 17 — HGX VLAN 126/L2VNI 100126/172.23.142.0/24, NFS VLAN 326, L3VNI 300017, VRF tenant17, PKey 0x8011"
+  deployment_types: [all]
+- name: tenant18
+  description: "STC tenant 18 — HGX VLAN 127/L2VNI 100127/172.23.143.0/24, NFS VLAN 327, L3VNI 300018, VRF tenant18, PKey 0x8012"
+  deployment_types: [all]
+- name: tenant19
+  description: "STC tenant 19 — HGX VLAN 128/L2VNI 100128/172.23.144.0/24, NFS VLAN 328, L3VNI 300019, VRF tenant19, PKey 0x8013"
+  deployment_types: [all]
+- name: tenant20
+  description: "STC tenant 20 — HGX VLAN 129/L2VNI 100129/172.23.145.0/24, NFS VLAN 329, L3VNI 300020, VRF tenant20, PKey 0x8014"
+  deployment_types: [all]
+- name: tenant21
+  description: "STC tenant 21 — HGX VLAN 130/L2VNI 100130/172.23.146.0/24, NFS VLAN 330, L3VNI 300021, VRF tenant21, PKey 0x8015"
+  deployment_types: [all]
+- name: tenant22
+  description: "STC tenant 22 — HGX VLAN 131/L2VNI 100131/172.23.147.0/24, NFS VLAN 331, L3VNI 300022, VRF tenant22, PKey 0x8016"
+  deployment_types: [all]
+- name: tenant23
+  description: "STC tenant 23 — HGX VLAN 132/L2VNI 100132/172.23.148.0/24, NFS VLAN 332, L3VNI 300023, VRF tenant23, PKey 0x8017"
+  deployment_types: [all]
+- name: tenant24
+  description: "STC tenant 24 — HGX VLAN 133/L2VNI 100133/172.23.149.0/24, NFS VLAN 333, L3VNI 300024, VRF tenant24, PKey 0x8018"
+  deployment_types: [all]
+- name: tenant25
+  description: "STC tenant 25 — HGX VLAN 134/L2VNI 100134/172.23.150.0/24, NFS VLAN 334, L3VNI 300025, VRF tenant25, PKey 0x8019"
+  deployment_types: [all]
+- name: tenant26
+  description: "STC tenant 26 — HGX VLAN 135/L2VNI 100135/172.23.151.0/24, NFS VLAN 335, L3VNI 300026, VRF tenant26, PKey 0x801A"
+  deployment_types: [all]
+- name: tenant27
+  description: "STC tenant 27 — HGX VLAN 136/L2VNI 100136/172.23.152.0/24, NFS VLAN 336, L3VNI 300027, VRF tenant27, PKey 0x801B"
+  deployment_types: [all]
+- name: tenant28
+  description: "STC tenant 28 — HGX VLAN 137/L2VNI 100137/172.23.153.0/24, NFS VLAN 337, L3VNI 300028, VRF tenant28, PKey 0x801C"
+  deployment_types: [all]
+- name: tenant29
+  description: "STC tenant 29 — HGX VLAN 138/L2VNI 100138/172.23.154.0/24, NFS VLAN 338, L3VNI 300029, VRF tenant29, PKey 0x801D"
+  deployment_types: [all]
+- name: tenant30
+  description: "STC tenant 30 — HGX VLAN 139/L2VNI 100139/172.23.155.0/24, NFS VLAN 339, L3VNI 300030, VRF tenant30, PKey 0x801E"
+  deployment_types: [all]
+- name: tenant31
+  description: "STC tenant 31 — HGX VLAN 140/L2VNI 100140/172.23.156.0/24, NFS VLAN 340, L3VNI 300031, VRF tenant31, PKey 0x801F"
+  deployment_types: [all]
+- name: tenant32
+  description: "STC tenant 32 — HGX VLAN 141/L2VNI 100141/172.23.157.0/24, NFS VLAN 341, L3VNI 300032, VRF tenant32, PKey 0x8020"
+  deployment_types: [all]
+- name: tenant33
+  description: "STC tenant 33 — HGX VLAN 142/L2VNI 100142/172.23.158.0/24, NFS VLAN 342, L3VNI 300033, VRF tenant33, PKey 0x8021"
+  deployment_types: [all]
+- name: tenant34
+  description: "STC tenant 34 — HGX VLAN 143/L2VNI 100143/172.23.159.0/24, NFS VLAN 343, L3VNI 300034, VRF tenant34, PKey 0x8022"
+  deployment_types: [all]
+- name: tenant35
+  description: "STC tenant 35 — HGX VLAN 144/L2VNI 100144/172.23.160.0/24, NFS VLAN 344, L3VNI 300035, VRF tenant35, PKey 0x8023"
+  deployment_types: [all]
+- name: tenant36
+  description: "STC tenant 36 — HGX VLAN 145/L2VNI 100145/172.23.161.0/24, NFS VLAN 345, L3VNI 300036, VRF tenant36, PKey 0x8024"
+  deployment_types: [all]
+- name: tenant37
+  description: "STC tenant 37 — HGX VLAN 146/L2VNI 100146/172.23.162.0/24, NFS VLAN 346, L3VNI 300037, VRF tenant37, PKey 0x8025"
+  deployment_types: [all]
+- name: tenant38
+  description: "STC tenant 38 — HGX VLAN 147/L2VNI 100147/172.23.163.0/24, NFS VLAN 347, L3VNI 300038, VRF tenant38, PKey 0x8026"
+  deployment_types: [all]
+- name: tenant39
+  description: "STC tenant 39 — HGX VLAN 148/L2VNI 100148/172.23.164.0/24, NFS VLAN 348, L3VNI 300039, VRF tenant39, PKey 0x8027"
+  deployment_types: [all]
+- name: tenant40
+  description: "STC tenant 40 — HGX VLAN 149/L2VNI 100149/172.23.165.0/24, NFS VLAN 349, L3VNI 300040, VRF tenant40, PKey 0x8028"
+  deployment_types: [all]
+- name: tenant41
+  description: "STC tenant 41 — HGX VLAN 150/L2VNI 100150/172.23.166.0/24, NFS VLAN 350, L3VNI 300041, VRF tenant41, PKey 0x8029"
+  deployment_types: [all]
+- name: tenant42
+  description: "STC tenant 42 — HGX VLAN 151/L2VNI 100151/172.23.167.0/24, NFS VLAN 351, L3VNI 300042, VRF tenant42, PKey 0x802A"
+  deployment_types: [all]
+- name: tenant43
+  description: "STC tenant 43 — HGX VLAN 152/L2VNI 100152/172.23.168.0/24, NFS VLAN 352, L3VNI 300043, VRF tenant43, PKey 0x802B"
+  deployment_types: [all]
+- name: tenant44
+  description: "STC tenant 44 — HGX VLAN 153/L2VNI 100153/172.23.169.0/24, NFS VLAN 353, L3VNI 300044, VRF tenant44, PKey 0x802C"
+  deployment_types: [all]
+- name: tenant45
+  description: "STC tenant 45 — HGX VLAN 154/L2VNI 100154/172.23.170.0/24, NFS VLAN 354, L3VNI 300045, VRF tenant45, PKey 0x802D"
+  deployment_types: [all]
+- name: tenant46
+  description: "STC tenant 46 — HGX VLAN 155/L2VNI 100155/172.23.171.0/24, NFS VLAN 355, L3VNI 300046, VRF tenant46, PKey 0x802E"
+  deployment_types: [all]
+- name: tenant47
+  description: "STC tenant 47 — HGX VLAN 156/L2VNI 100156/172.23.172.0/24, NFS VLAN 356, L3VNI 300047, VRF tenant47, PKey 0x802F"
+  deployment_types: [all]
+- name: tenant48
+  description: "STC tenant 48 — HGX VLAN 157/L2VNI 100157/172.23.173.0/24, NFS VLAN 357, L3VNI 300048, VRF tenant48, PKey 0x8030"
+  deployment_types: [all]
+- name: tenant49
+  description: "STC tenant 49 — HGX VLAN 158/L2VNI 100158/172.23.174.0/24, NFS VLAN 358, L3VNI 300049, VRF tenant49, PKey 0x8031"
+  deployment_types: [all]
+- name: tenant50
+  description: "STC tenant 50 — HGX VLAN 159/L2VNI 100159/172.23.175.0/24, NFS VLAN 359, L3VNI 300050, VRF tenant50, PKey 0x8032"
+  deployment_types: [all]
+- name: tenant51
+  description: "STC tenant 51 — HGX VLAN 160/L2VNI 100160/172.23.176.0/24, NFS VLAN 360, L3VNI 300051, VRF tenant51, PKey 0x8033"
+  deployment_types: [all]
+- name: tenant52
+  description: "STC tenant 52 — HGX VLAN 161/L2VNI 100161/172.23.177.0/24, NFS VLAN 361, L3VNI 300052, VRF tenant52, PKey 0x8034"
+  deployment_types: [all]
+- name: tenant53
+  description: "STC tenant 53 — HGX VLAN 162/L2VNI 100162/172.23.178.0/24, NFS VLAN 362, L3VNI 300053, VRF tenant53, PKey 0x8035"
+  deployment_types: [all]
+- name: tenant54
+  description: "STC tenant 54 — HGX VLAN 163/L2VNI 100163/172.23.179.0/24, NFS VLAN 363, L3VNI 300054, VRF tenant54, PKey 0x8036"
+  deployment_types: [all]
+- name: tenant55
+  description: "STC tenant 55 — HGX VLAN 164/L2VNI 100164/172.23.180.0/24, NFS VLAN 364, L3VNI 300055, VRF tenant55, PKey 0x8037"
+  deployment_types: [all]
+- name: tenant56
+  description: "STC tenant 56 — HGX VLAN 165/L2VNI 100165/172.23.181.0/24, NFS VLAN 365, L3VNI 300056, VRF tenant56, PKey 0x8038"
+  deployment_types: [all]
+- name: tenant57
+  description: "STC tenant 57 — HGX VLAN 166/L2VNI 100166/172.23.182.0/24, NFS VLAN 366, L3VNI 300057, VRF tenant57, PKey 0x8039"
+  deployment_types: [all]
+- name: tenant58
+  description: "STC tenant 58 — HGX VLAN 167/L2VNI 100167/172.23.183.0/24, NFS VLAN 367, L3VNI 300058, VRF tenant58, PKey 0x803A"
+  deployment_types: [all]
+- name: tenant59
+  description: "STC tenant 59 — HGX VLAN 168/L2VNI 100168/172.23.184.0/24, NFS VLAN 368, L3VNI 300059, VRF tenant59, PKey 0x803B"
+  deployment_types: [all]
+- name: tenant60
+  description: "STC tenant 60 — HGX VLAN 169/L2VNI 100169/172.23.185.0/24, NFS VLAN 369, L3VNI 300060, VRF tenant60, PKey 0x803C"
+  deployment_types: [all]
+- name: tenant61
+  description: "STC tenant 61 — HGX VLAN 170/L2VNI 100170/172.23.186.0/24, NFS VLAN 370, L3VNI 300061, VRF tenant61, PKey 0x803D"
+  deployment_types: [all]
+- name: tenant62
+  description: "STC tenant 62 — HGX VLAN 171/L2VNI 100171/172.23.187.0/24, NFS VLAN 371, L3VNI 300062, VRF tenant62, PKey 0x803E"
+  deployment_types: [all]
+- name: tenant63
+  description: "STC tenant 63 — HGX VLAN 172/L2VNI 100172/172.23.188.0/24, NFS VLAN 372, L3VNI 300063, VRF tenant63, PKey 0x803F"
+  deployment_types: [all]
+- name: tenant64
+  description: "STC tenant 64 — HGX VLAN 173/L2VNI 100173/172.23.189.0/24, NFS VLAN 373, L3VNI 300064, VRF tenant64, PKey 0x8040"
+  deployment_types: [all]
+- name: tenant65
+  description: "STC tenant 65 — HGX VLAN 174/L2VNI 100174/172.23.190.0/24, NFS VLAN 374, L3VNI 300065, VRF tenant65, PKey 0x8041"
+  deployment_types: [all]
+- name: tenant66
+  description: "STC tenant 66 — HGX VLAN 175/L2VNI 100175/172.23.191.0/24, NFS VLAN 375, L3VNI 300066, VRF tenant66, PKey 0x8042"
+  deployment_types: [all]
+- name: tenant67
+  description: "STC tenant 67 — HGX VLAN 176/L2VNI 100176/172.23.192.0/24, NFS VLAN 376, L3VNI 300067, VRF tenant67, PKey 0x8043"
+  deployment_types: [all]
+- name: tenant68
+  description: "STC tenant 68 — HGX VLAN 177/L2VNI 100177/172.23.193.0/24, NFS VLAN 377, L3VNI 300068, VRF tenant68, PKey 0x8044"
+  deployment_types: [all]
+- name: tenant69
+  description: "STC tenant 69 — HGX VLAN 178/L2VNI 100178/172.23.194.0/24, NFS VLAN 378, L3VNI 300069, VRF tenant69, PKey 0x8045"
+  deployment_types: [all]
+- name: tenant70
+  description: "STC tenant 70 — HGX VLAN 179/L2VNI 100179/172.23.195.0/24, NFS VLAN 379, L3VNI 300070, VRF tenant70, PKey 0x8046"
+  deployment_types: [all]
+- name: tenant71
+  description: "STC tenant 71 — HGX VLAN 180/L2VNI 100180/172.23.196.0/24, NFS VLAN 380, L3VNI 300071, VRF tenant71, PKey 0x8047"
+  deployment_types: [all]
+- name: tenant72
+  description: "STC tenant 72 — HGX VLAN 181/L2VNI 100181/172.23.197.0/24, NFS VLAN 381, L3VNI 300072, VRF tenant72, PKey 0x8048"
+  deployment_types: [all]
+- name: tenant73
+  description: "STC tenant 73 — HGX VLAN 182/L2VNI 100182/172.23.198.0/24, NFS VLAN 382, L3VNI 300073, VRF tenant73, PKey 0x8049"
+  deployment_types: [all]
+- name: tenant74
+  description: "STC tenant 74 — HGX VLAN 183/L2VNI 100183/172.23.199.0/24, NFS VLAN 383, L3VNI 300074, VRF tenant74, PKey 0x804A"
+  deployment_types: [all]
+- name: tenant75
+  description: "STC tenant 75 — HGX VLAN 184/L2VNI 100184/172.23.200.0/24, NFS VLAN 384, L3VNI 300075, VRF tenant75, PKey 0x804B"
+  deployment_types: [all]
+- name: tenant76
+  description: "STC tenant 76 — HGX VLAN 185/L2VNI 100185/172.23.201.0/24, NFS VLAN 385, L3VNI 300076, VRF tenant76, PKey 0x804C"
+  deployment_types: [all]
+- name: tenant77
+  description: "STC tenant 77 — HGX VLAN 186/L2VNI 100186/172.23.202.0/24, NFS VLAN 386, L3VNI 300077, VRF tenant77, PKey 0x804D"
+  deployment_types: [all]
+- name: tenant78
+  description: "STC tenant 78 — HGX VLAN 187/L2VNI 100187/172.23.203.0/24, NFS VLAN 387, L3VNI 300078, VRF tenant78, PKey 0x804E"
+  deployment_types: [all]
+- name: tenant79
+  description: "STC tenant 79 — HGX VLAN 188/L2VNI 100188/172.23.204.0/24, NFS VLAN 388, L3VNI 300079, VRF tenant79, PKey 0x804F"
+  deployment_types: [all]
+- name: tenant80
+  description: "STC tenant 80 — HGX VLAN 189/L2VNI 100189/172.23.205.0/24, NFS VLAN 389, L3VNI 300080, VRF tenant80, PKey 0x8050"
+  deployment_types: [all]
+- name: tenant81
+  description: "STC tenant 81 — HGX VLAN 190/L2VNI 100190/172.23.206.0/24, NFS VLAN 390, L3VNI 300081, VRF tenant81, PKey 0x8051"
+  deployment_types: [all]
+- name: tenant82
+  description: "STC tenant 82 — HGX VLAN 191/L2VNI 100191/172.23.207.0/24, NFS VLAN 391, L3VNI 300082, VRF tenant82, PKey 0x8052"
+  deployment_types: [all]
+- name: tenant83
+  description: "STC tenant 83 — HGX VLAN 192/L2VNI 100192/172.23.208.0/24, NFS VLAN 392, L3VNI 300083, VRF tenant83, PKey 0x8053"
+  deployment_types: [all]
+- name: tenant84
+  description: "STC tenant 84 — HGX VLAN 193/L2VNI 100193/172.23.209.0/24, NFS VLAN 393, L3VNI 300084, VRF tenant84, PKey 0x8054"
+  deployment_types: [all]
+- name: tenant85
+  description: "STC tenant 85 — HGX VLAN 194/L2VNI 100194/172.23.210.0/24, NFS VLAN 394, L3VNI 300085, VRF tenant85, PKey 0x8055"
+  deployment_types: [all]
+- name: tenant86
+  description: "STC tenant 86 — HGX VLAN 195/L2VNI 100195/172.23.211.0/24, NFS VLAN 395, L3VNI 300086, VRF tenant86, PKey 0x8056"
+  deployment_types: [all]
+- name: tenant87
+  description: "STC tenant 87 — HGX VLAN 196/L2VNI 100196/172.23.212.0/24, NFS VLAN 396, L3VNI 300087, VRF tenant87, PKey 0x8057"
+  deployment_types: [all]
+- name: tenant88
+  description: "STC tenant 88 — HGX VLAN 197/L2VNI 100197/172.23.213.0/24, NFS VLAN 397, L3VNI 300088, VRF tenant88, PKey 0x8058"
+  deployment_types: [all]
+- name: tenant89
+  description: "STC tenant 89 — HGX VLAN 198/L2VNI 100198/172.23.214.0/24, NFS VLAN 398, L3VNI 300089, VRF tenant89, PKey 0x8059"
+  deployment_types: [all]
+- name: tenant90
+  description: "STC tenant 90 — HGX VLAN 199/L2VNI 100199/172.23.215.0/24, NFS VLAN 399, L3VNI 300090, VRF tenant90, PKey 0x805A"
+  deployment_types: [all]
+- name: tenant91
+  description: "STC tenant 91 — HGX VLAN 200/L2VNI 100200/172.23.216.0/24, NFS VLAN 402, L3VNI 300091, VRF tenant91, PKey 0x805B"
+  deployment_types: [all]
+- name: tenant92
+  description: "STC tenant 92 — HGX VLAN 201/L2VNI 100201/172.23.217.0/24, NFS VLAN 403, L3VNI 300092, VRF tenant92, PKey 0x805C"
+  deployment_types: [all]
+- name: tenant93
+  description: "STC tenant 93 — HGX VLAN 202/L2VNI 100202/172.23.218.0/24, NFS VLAN 404, L3VNI 300093, VRF tenant93, PKey 0x805D"
+  deployment_types: [all]
+- name: tenant94
+  description: "STC tenant 94 — HGX VLAN 203/L2VNI 100203/172.23.219.0/24, NFS VLAN 405, L3VNI 300094, VRF tenant94, PKey 0x805E"
+  deployment_types: [all]
+- name: tenant95
+  description: "STC tenant 95 — HGX VLAN 204/L2VNI 100204/172.23.220.0/24, NFS VLAN 406, L3VNI 300095, VRF tenant95, PKey 0x805F"
+  deployment_types: [all]
+- name: tenant96
+  description: "STC tenant 96 — HGX VLAN 205/L2VNI 100205/172.23.221.0/24, NFS VLAN 407, L3VNI 300096, VRF tenant96, PKey 0x8060"
+  deployment_types: [all]
+- name: tenant97
+  description: "STC tenant 97 — HGX VLAN 206/L2VNI 100206/172.23.222.0/24, NFS VLAN 408, L3VNI 300097, VRF tenant97, PKey 0x8061"
+  deployment_types: [all]
+- name: tenant98
+  description: "STC tenant 98 — HGX VLAN 207/L2VNI 100207/172.23.223.0/24, NFS VLAN 409, L3VNI 300098, VRF tenant98, PKey 0x8062"
+  deployment_types: [all]
+- name: tenant99
+  description: "STC tenant 99 — HGX VLAN 208/L2VNI 100208/172.23.224.0/24, NFS VLAN 410, L3VNI 300099, VRF tenant99, PKey 0x8063"
+  deployment_types: [all]
+- name: tenant100
+  description: "STC tenant 100 — HGX VLAN 209/L2VNI 100209/172.23.225.0/24, NFS VLAN 411, L3VNI 300100, VRF tenant100, PKey 0x8064"
+  deployment_types: [all]
