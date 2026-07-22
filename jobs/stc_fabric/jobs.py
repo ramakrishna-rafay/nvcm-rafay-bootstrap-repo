@@ -52,28 +52,45 @@ CABLES = "designs/20-cables.yaml.j2"
 # thin run() override — matching the original working pattern.
 
 
+# config_context keys the underlay design does NOT own but that MUST survive an underlay apply
+# (which rewrites local_config_context_data): the per-tenant overlay AND the server access-port
+# attachments. Without preserving server_ports, re-running the fabric Devices job silently drops
+# every attached GPU/host from its tenant VLAN (the bug that stranded gpu-01 on a stale VLAN).
+_PRESERVE_KEYS = ("tenants", "server_ports")
+
+
 def _snapshot_tenants():
-    """Capture each device's per-tenant overlay before an underlay apply rewrites config_context."""
-    return {
-        d.name: (d.local_config_context_data or {}).get("tenants")
-        for d in Device.objects.filter(local_config_context_data__has_key="tenants")
-    }
+    """Capture the overlay + server-attachment keys before an underlay apply rewrites config_context."""
+    from django.db.models import Q
+
+    q = Q()
+    for k in _PRESERVE_KEYS:
+        q |= Q(local_config_context_data__has_key=k)
+    snap = {}
+    for d in Device.objects.filter(q):
+        cc = d.local_config_context_data or {}
+        keep = {k: cc[k] for k in _PRESERVE_KEYS if cc.get(k)}
+        if keep:
+            snap[d.name] = keep
+    return snap
 
 
 def _restore_tenants(job, saved):
-    """Re-apply the overlay the underlay design would otherwise have dropped."""
-    for dev_name, tenants in saved.items():
-        if not tenants:
+    """Re-apply the overlay + server-attachment keys the underlay design would otherwise have dropped."""
+    for dev_name, keep in saved.items():
+        if not keep:
             continue
         d = Device.objects.get(name=dev_name)
         cc = dict(d.local_config_context_data or {})
-        if cc.get("tenants") != tenants:
-            cc["tenants"] = tenants
+        changed = False
+        for k, v in keep.items():
+            if cc.get(k) != v:
+                cc[k] = v
+                changed = True
+        if changed:
             d.local_config_context_data = cc
             d.save()
-            job.logger.info(
-                "preserved %d tenant(s) on %s across underlay apply", len(tenants), dev_name
-            )
+            job.logger.info("preserved %s on %s across underlay apply", list(keep), dev_name)
 
 
 def _write_change_summary(job, environment):
