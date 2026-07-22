@@ -15,7 +15,9 @@ re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manu
 10. tags.yaml                    (no dependencies)
 11. custom_fields.yaml           (no dependencies)
 12. platforms.yaml               (depends on manufacturers)
-13. device_types/                (depends on manufacturers)
+13. device_types/                (depends on manufacturers). Also loads each type's interface
+                                  templates from the YAML `interfaces:` block (name/type/mgmt_only/
+                                  mtu), so devices created afterwards get the full port set.
 14. relationships.yaml           (no dependencies)
 15. config_context_schemas.yaml  (no dependencies)          [optional - no-op if file absent]
 16. config_contexts.yaml         (depends on config_context_schemas; roles/locations if scoped)
@@ -24,3 +26,8 @@ re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manu
                                   the DEVICES to already exist (created by the fabric/server DesignJobs),
                                   so run/re-run this after them; a missing device is skipped, not errored.
                                   Entries with `skip: true` are UI-managed and ignored (e.g. the spines).
+18. (interface backfill)         Not a file — runs after device_placements. Adds to each EXISTING
+                                  device any interface its device-type template defines but the device
+                                  lacks (templates only auto-instantiate at device-creation time), and
+                                  fills a missing MTU from the template. Idempotent; ports already
+                                  present keep their attributes. New devices get their ports at create.

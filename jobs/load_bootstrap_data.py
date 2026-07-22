@@ -24,6 +24,8 @@ from nautobot.core.models.fields import slugify_dashes_to_underscores
 from nautobot.dcim.models import (
     Device,
     DeviceType,
+    Interface,
+    InterfaceTemplate,
     Location,
     LocationType,
     Manufacturer,
@@ -148,9 +150,78 @@ class LoadBootstrapData(Job):
         # Physical rack elevations — runs last: needs the devices to already exist (created by the
         # fabric/server DesignJobs). Missing devices are skipped, not errored.
         self.load_device_placements()
+        # Bring existing devices up to their device-type's full port set. Interface templates only
+        # instantiate at device-CREATION time, so devices created before the templates existed (or
+        # created by the fabric DesignJobs, which add only the ports they wire) are missing ports.
+        # Runs last, after the devices exist.
+        self.backfill_device_interfaces()
 
         self.logger.info("Bootstrap Data Load Complete!", extra={"grouping": "bootstrap"})
         return "Bootstrap data load completed successfully"
+
+    def backfill_device_interfaces(self):
+        """Add any interfaces a device is missing relative to its device-type templates.
+
+        Device-type interface templates instantiate onto a device only at CREATION time. Devices
+        created before their type carried templates — or created by the fabric DesignJobs, which add
+        only the ports they wire — are missing the rest of the model's physical port set. This walks
+        every device and idempotently creates each templated interface it lacks (uniform port set per
+        hardware model). Ports already present are left as-is, except that a missing MTU is filled
+        from the template so pre-existing ports match their siblings. New devices created after this
+        runs get their ports automatically at creation and need no backfill.
+        """
+        self.logger.info(
+            "Backfilling device interfaces from device-type templates",
+            extra={"grouping": "device_interfaces"},
+        )
+        try:
+            active = Status.objects.get(name="Active")
+        except Status.DoesNotExist:
+            self.logger.failure(
+                "Active status not found; skipping interface backfill",
+                extra={"grouping": "device_interfaces"},
+            )
+            return
+
+        added, filled = 0, 0
+        for device in Device.objects.select_related("device_type"):
+            device_type = device.device_type
+            if not device_type:
+                continue
+            templates = list(device_type.interface_templates.all())
+            if not templates:
+                continue
+            existing = {i.name: i for i in device.interfaces.all()}
+            for tmpl in templates:
+                iface = existing.get(tmpl.name)
+                if iface is not None:
+                    # Port already exists — only fill an MTU the design left unset (e.g. spare ports),
+                    # so pre-existing ports match the uniform fabric MTU without fighting the design.
+                    if iface.mtu is None and tmpl.mtu is not None:
+                        iface.mtu = tmpl.mtu
+                        iface.validated_save()
+                        filled += 1
+                    continue
+                try:
+                    Interface.objects.create(
+                        device=device,
+                        name=tmpl.name,
+                        type=tmpl.type,
+                        mgmt_only=tmpl.mgmt_only,
+                        mtu=tmpl.mtu,
+                        description=tmpl.description or "",
+                        status=active,
+                    )
+                    added += 1
+                except Exception as exc:  # keep going; one bad port must not abort the whole backfill
+                    self.logger.warning(
+                        f"Could not add interface {tmpl.name} to {device.name}: {exc}",
+                        extra={"grouping": "device_interfaces"},
+                    )
+        self.logger.success(
+            f"Interface backfill complete — {added} port(s) added, {filled} MTU(s) filled",
+            extra={"grouping": "device_interfaces"},
+        )
 
     def load_device_placements(self):
         """Place devices into racks (rack / U-position / face) from data/device_placements.yaml.
@@ -314,6 +385,31 @@ class LoadBootstrapData(Job):
                 extra={"grouping": "device_types", "object": device_type},
             )
 
+        # Interface templates — the model's physical port complement. Loading these makes every
+        # DEVICE of this type get the full, uniform port set at creation time (ports a layer/role
+        # does not use simply stay unwired). Idempotent: keyed on (device_type, name).
+        template_count = 0
+        for iface in dt_data.get("interfaces", []) or []:
+            iface_name = iface.get("name")
+            if not iface_name:
+                continue
+            InterfaceTemplate.objects.update_or_create(
+                device_type=device_type,
+                name=iface_name,
+                defaults={
+                    "type": iface.get("type", "other"),
+                    "mgmt_only": iface.get("mgmt_only", False),
+                    "mtu": iface.get("mtu"),
+                    "description": iface.get("description", ""),
+                },
+            )
+            template_count += 1
+        if template_count:
+            self.logger.info(
+                f"  loaded {template_count} interface template(s) for {dt_data['model']}",
+                extra={"grouping": "device_types", "object": device_type},
+            )
+
     def _load_manufacturer_device_types(self, manufacturer_dir):
         """Load all device types for a single manufacturer directory.
 
@@ -332,6 +428,15 @@ class LoadBootstrapData(Job):
             return
 
         for device_type_file in manufacturer_dir.glob("*.yaml"):
+            # `future_*.yaml` are not-yet-active hardware models (e.g. future_SN5600) kept for a later
+            # production build. The lab runs entirely on Cumulus VX, so skip them — don't create the
+            # device type or its templates.
+            if device_type_file.name.startswith("future_"):
+                self.logger.info(
+                    f"Skipping future device type file: {device_type_file.name}",
+                    extra={"grouping": "device_types"},
+                )
+                continue
             try:
                 self._load_single_device_type(device_type_file, manufacturer)
             except Exception as e:
