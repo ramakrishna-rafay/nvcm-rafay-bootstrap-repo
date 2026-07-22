@@ -16,8 +16,9 @@ re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manu
 11. custom_fields.yaml           (no dependencies)
 12. platforms.yaml               (depends on manufacturers)
 13. device_types/                (depends on manufacturers). Also loads each type's interface
-                                  templates from the YAML `interfaces:` block (name/type/mgmt_only/
-                                  mtu), so devices created afterwards get the full port set.
+                                  templates from the YAML `interfaces:` block (name/type/mgmt_only;
+                                  NOT mtu — InterfaceTemplate has no mtu field), so devices created
+                                  afterwards get the full port set. `future_*.yaml` files are skipped.
 14. relationships.yaml           (no dependencies)
 15. config_context_schemas.yaml  (no dependencies)          [optional - no-op if file absent]
 16. config_contexts.yaml         (depends on config_context_schemas; roles/locations if scoped)
@@ -29,5 +30,6 @@ re-running reconciles existing objects to the YAML. Deletes are NOT pruned (manu
 18. (interface backfill)         Not a file — runs after device_placements. Adds to each EXISTING
                                   device any interface its device-type template defines but the device
                                   lacks (templates only auto-instantiate at device-creation time), and
-                                  fills a missing MTU from the template. Idempotent; ports already
-                                  present keep their attributes. New devices get their ports at create.
+                                  sets the fabric MTU (9216) on swp ports that had none. Idempotent;
+                                  ports already present keep their attributes. New devices get ports
+                                  at create (MTU is then applied by the fabric design / this backfill).

@@ -21,161 +21,129 @@ interfaces:
 
   - name: swp1
     type: other
-    mtu: 9216
     description: "Front panel port 1"
 
   - name: swp2
     type: other
-    mtu: 9216
     description: "Front panel port 2"
 
   - name: swp3
     type: other
-    mtu: 9216
     description: "Front panel port 3"
 
   - name: swp4
     type: other
-    mtu: 9216
     description: "Front panel port 4"
 
   - name: swp5
     type: other
-    mtu: 9216
     description: "Front panel port 5"
 
   - name: swp6
     type: other
-    mtu: 9216
     description: "Front panel port 6"
 
   - name: swp7
     type: other
-    mtu: 9216
     description: "Front panel port 7"
 
   - name: swp8
     type: other
-    mtu: 9216
     description: "Front panel port 8"
 
   - name: swp9
     type: other
-    mtu: 9216
     description: "Front panel port 9"
 
   - name: swp10
     type: other
-    mtu: 9216
     description: "Front panel port 10"
 
   - name: swp11
     type: other
-    mtu: 9216
     description: "Front panel port 11"
 
   - name: swp12
     type: other
-    mtu: 9216
     description: "Front panel port 12"
 
   - name: swp13
     type: other
-    mtu: 9216
     description: "Front panel port 13"
 
   - name: swp14
     type: other
-    mtu: 9216
     description: "Front panel port 14"
 
   - name: swp15
     type: other
-    mtu: 9216
     description: "Front panel port 15"
 
   - name: swp16
     type: other
-    mtu: 9216
     description: "Front panel port 16"
   
   - name: swp17
     type: other
-    mtu: 9216
     description: "Front panel port 17"
 
   - name: swp18
     type: other
-    mtu: 9216
     description: "Front panel port 18"
 
   - name: swp19
     type: other
-    mtu: 9216
     description: "Front panel port 19"
 
   - name: swp20
     type: other
-    mtu: 9216
     description: "Front panel port 20"
 
   - name: swp21
     type: other
-    mtu: 9216
     description: "Front panel port 21"
   
   - name: swp22
     type: other
-    mtu: 9216
     description: "Front panel port 22"
 
   - name: swp23
     type: other
-    mtu: 9216
     description: "Front panel port 23"
 
   - name: swp24
     type: other
-    mtu: 9216
     description: "Front panel port 24"
 
   - name: swp25
     type: other
-    mtu: 9216
     description: "Front panel port 25"
 
   - name: swp26
     type: other
-    mtu: 9216
     description: "Front panel port 26"
   
   - name: swp27
     type: other
-    mtu: 9216
     description: "Front panel port 27"
   
   - name: swp28
     type: other
-    mtu: 9216
     description: "Front panel port 28"
 
   - name: swp29
     type: other
-    mtu: 9216
     description: "Front panel port 29"
 
   - name: swp30
     type: other
-    mtu: 9216
     description: "Front panel port 30"
 
   - name: swp31
     type: other
-    mtu: 9216
     description: "Front panel port 31"
 
   - name: swp32
     type: other
-    mtu: 9216
     description: "Front panel port 32"
 

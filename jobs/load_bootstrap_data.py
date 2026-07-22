@@ -47,6 +47,10 @@ from nautobot.tenancy.models import Tenant
 
 name = "Bootstrap"
 
+# Fabric-port (swp) jumbo MTU, per the STC network schema. Applied to swp interfaces during the
+# device-interface backfill (MTU is an Interface attribute, not an InterfaceTemplate one).
+FABRIC_MTU = 9216
+
 
 class LoadBootstrapData(Job):
     """Load bootstrap data for NVIDIA Config Manager external customers from YAML templates."""
@@ -193,12 +197,15 @@ class LoadBootstrapData(Job):
                 continue
             existing = {i.name: i for i in device.interfaces.all()}
             for tmpl in templates:
+                # MTU is not an InterfaceTemplate field — it lives on the Interface. The fabric ports
+                # (swp) carry the jumbo MTU (9216, per the STC schema); mgmt/loopback stay default.
+                fabric_mtu = FABRIC_MTU if tmpl.name.startswith("swp") else None
                 iface = existing.get(tmpl.name)
                 if iface is not None:
                     # Port already exists — only fill an MTU the design left unset (e.g. spare ports),
                     # so pre-existing ports match the uniform fabric MTU without fighting the design.
-                    if iface.mtu is None and tmpl.mtu is not None:
-                        iface.mtu = tmpl.mtu
+                    if iface.mtu is None and fabric_mtu is not None:
+                        iface.mtu = fabric_mtu
                         iface.validated_save()
                         filled += 1
                     continue
@@ -208,7 +215,7 @@ class LoadBootstrapData(Job):
                         name=tmpl.name,
                         type=tmpl.type,
                         mgmt_only=tmpl.mgmt_only,
-                        mtu=tmpl.mtu,
+                        mtu=fabric_mtu,
                         description=tmpl.description or "",
                         status=active,
                     )
@@ -388,6 +395,8 @@ class LoadBootstrapData(Job):
         # Interface templates — the model's physical port complement. Loading these makes every
         # DEVICE of this type get the full, uniform port set at creation time (ports a layer/role
         # does not use simply stay unwired). Idempotent: keyed on (device_type, name).
+        # NOTE: InterfaceTemplate has no `mtu` field (MTU is an Interface attribute) — do not pass it
+        # here or update_or_create raises FieldError. MTU is applied per-interface in the backfill.
         template_count = 0
         for iface in dt_data.get("interfaces", []) or []:
             iface_name = iface.get("name")
@@ -399,7 +408,6 @@ class LoadBootstrapData(Job):
                 defaults={
                     "type": iface.get("type", "other"),
                     "mgmt_only": iface.get("mgmt_only", False),
-                    "mtu": iface.get("mtu"),
                     "description": iface.get("description", ""),
                 },
             )
