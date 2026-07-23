@@ -17,7 +17,8 @@ no-op. Read-mostly: its only side effect is enqueuing the (already-proven, gated
 compile.
 """
 from nautobot.dcim.models import Device
-from nautobot.extras.jobs import JobHookReceiver, register_jobs
+from nautobot.apps.jobs import register_jobs
+from nautobot.extras.jobs import JobHookReceiver
 from nautobot.extras.models import Job, JobResult
 from nautobot.users.models import User
 
