@@ -37,6 +37,10 @@ name = "STC Server"   # groups these jobs under "STC Server" in the Jobs UI (lik
 PLANES = (("hgx", "hgx (GPU/compute)"), ("nfs", "nfs (storage)"))
 RENDER_API = "http://nv-config-manager-render-api:9000"
 TEMPORAL_API = "http://nv-config-manager-temporal-api:9000"
+# External/egress supernet a server reaches over the tenant fabric (routed via the anycast gateway, not
+# mgmt0). In the lab this is the DC-GW "internet" stand-in (l7_dcgw.j2 loopback); set to the real external
+# egress supernet in production. Emitted as EXT_ROUTES in the attach/move host netplan command.
+EGRESS_STANDIN_PREFIX = "203.0.113.0/24"
 
 
 def set_server_tenant(server, tenant_name):
@@ -133,8 +137,11 @@ def host_netplan_cmd(server, plane_alloc=None, clear=False):
     if clear:
         return f"MGMT_IP=<{server.name}-mgmt-ip> DATA_IP= stc_deploy_scripts/42_stc_server_netplan.sh"
     ip, gw = host_ip_hint(server, plane_alloc), plane_gateway(plane_alloc)
+    # EXT_ROUTES routes the external/egress destination over the tenant fabric (via the anycast gateway)
+    # while mgmt0 stays the host default — else the server sends it out mgmt0 and never touches the fabric.
+    ext = f" EXT_ROUTES={EGRESS_STANDIN_PREFIX}" if gw else ""
     return (f"MGMT_IP=<{server.name}-mgmt-ip> DATA_IP={ip} PLEN={plane_alloc['plen']}"
-            f"{f' GW={gw}' if gw else ''} stc_deploy_scripts/42_stc_server_netplan.sh")
+            f"{f' GW={gw}' if gw else ''}{ext} stc_deploy_scripts/42_stc_server_netplan.sh")
 
 
 def deploy_leaf(logger, device, auto):
