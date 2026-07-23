@@ -1,8 +1,0 @@
-# Tracked VRF object for the tenant (gives the deployment something to decommission and
-# records the tenant in the Nautobot SoT). The EVPN render intent itself is set on the leaves'
-# config_context by the job's run() (l6_overlay.j2 consumes it).
-vrfs:
-  - "!create_or_update:name": "{{ vrf_name }}"
-    namespace__name: "Global"
-    status__name: "Active"
-    description: "STC tenant {{ tenant_number }} — L3VNI {{ 300000 + tenant_number }}"
