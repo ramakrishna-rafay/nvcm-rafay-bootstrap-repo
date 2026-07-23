@@ -151,8 +151,13 @@ class STCTenantOverlay(DesignJob):
                     dcgw_peers.setdefault(link["dcgw"], []).append(
                         {"port": link["dcgw_port"], "vlan": vlan, "local": f"{g_addr}/31",
                          "peer": b_addr, "peer_asn": link["asn"], "accept": tenant_subnets})
+                # `advertise`: the tenant's own subnets, originated (BGP network statement) from the
+                # border's tenant VRF to the DC-GW so the DC-GW has a RETURN route to the tenant hosts.
+                # The subnets live on the compute leaves and reach the border via EVPN type-5; a network
+                # statement re-originates them over the ipv4-unicast eBGP session (redistribute-connected
+                # does not, since they are not connected here). Matches the DC-GW's per-peer accept-list.
                 entry = {"vrf": f["vrf"], "l3vni": f["l3vni"], "l3vni_vlan": f["l3vni_vlan"],
-                         "l2vnis": [], "externals": externals}
+                         "l2vnis": [], "externals": externals, "advertise": tenant_subnets}
                 cc = dict(d.local_config_context_data or {})
                 tenants = [x for x in cc.get("tenants", []) if x.get("vrf") != f["vrf"]]
                 tenants.append(entry)
