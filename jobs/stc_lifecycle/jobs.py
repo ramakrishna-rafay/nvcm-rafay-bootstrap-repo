@@ -102,6 +102,48 @@ def _deploy_device(logger, d, auto):
     return "timeout"
 
 
+def _stage_device(logger, d, field, auto, batches=3):
+    """Batched deploy of one device (Python mirror of stc_tenant_operations.sh stage-deploy): grow the
+    device's config_context list (`tenants` or dcgw `peers`) in cumulative prefixes, deploying between
+    each so every NVUE candidate diff stays under VX's ~82KB truncation point. Used when a one-shot
+    deploy fails (a device whose full config exceeds the diff limit, e.g. a DC-GW's ~100 peers). Ends at
+    the full (unchanged) list. Returns the terminal status of the last batch."""
+    import math
+    cc = dict(d.local_config_context_data or {})
+    full = cc.get("tenants", []) if field == "tenants" else (cc.get("dcgw") or {}).get("peers", [])
+    n = len(full)
+    if n == 0:
+        return _deploy_device(logger, d, auto)  # nothing large to stage; normal deploy
+    logger.info("%s: AUTO-STAGING %s (%d entries, %d batches) — one-shot exceeded the VX diff limit", d.name, field, n, batches)
+    status = "unknown"
+    last = -1
+    for i in range(1, batches + 1):
+        k = min(n, math.ceil(n * i / batches))
+        if k == last:
+            continue
+        last = k
+        cc = dict(d.local_config_context_data or {})
+        if field == "tenants":
+            cc["tenants"] = full[:k]
+        else:
+            g = dict(cc.get("dcgw") or {}); g["peers"] = full[:k]; cc["dcgw"] = g
+        d.local_config_context_data = cc
+        d.save()
+        logger.info("%s: staged %s[:%d/%d]", d.name, field, k, n)
+        status = _deploy_device(logger, d, auto)
+    return status
+
+
+def _deploy_or_stage(logger, d, auto):
+    """One-shot deploy; if it doesn't COMPLETE (and wasn't just gated-HELD), auto-stage the device by
+    type (DC-GW -> peers, leaf -> tenants). Adaptive: fast for healthy devices, staged only where needed."""
+    st = _deploy_device(logger, d, auto)
+    if st in ("COMPLETED", "held"):
+        return st
+    field = "peers" if "DC-R-" in d.name else "tenants"
+    return _stage_device(logger, d, field, auto)
+
+
 def _run_compile(logger, user, job_class_name, **kwargs):
     """Run a compile job (STCTenantOverlay/STCTenantOffboard) synchronously; return True on success."""
     job = JobModel.objects.filter(module_name="stc_tenant.jobs", job_class_name=job_class_name,
@@ -182,7 +224,7 @@ class STCTenantLifecycle(Job):
         for dn in AFFECTED:
             d = Device.objects.filter(name=dn).first()
             if d:
-                results[dn] = _deploy_device(self.logger, d, auto)
+                results[dn] = _deploy_or_stage(self.logger, d, auto)
         completed = [n for n, r in results.items() if r == "COMPLETED"]
         held = [n for n, r in results.items() if r == "held"]
         bad = [n for n, r in results.items() if r not in ("COMPLETED", "held")]
