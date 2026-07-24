@@ -43,6 +43,7 @@ AFFECTED = ["RMDC-GPU-LETH01", "RMDC-GPU-LETH02", "RMDC-GPU-LETH05", "RMDC-GPU-L
             "RMDC-DC-R-01", "RMDC-DC-R-02"]
 name = "STC Tenant"   # UI grouping — share the group with the (hidden) compile jobs
 DEPLOYED_TAG = "STC Fabric: Deployed"
+MAX_TENANTS_PER_LEAF = 49   # VX NVUE truncates a compute-leaf candidate diff beyond ~this (IncompleteRead)
 COMPUTE_LEAVES = COMPUTE.split(",")
 
 
@@ -132,11 +133,32 @@ class STCTenantLifecycle(Job):
         description = ("One action for the whole path. create: STCTenantOverlay compile + deploy. "
                        "destroy: STCTenantOffboard clear + deploy the removal. Gated by auto_approve.")
         has_sensitive_variables = False
+        # this job deploys up to ~6 devices sequentially (each a full render+DeployWorkflow poll, 30-90s),
+        # so it needs far more than Celery's default soft limit — else it dies with SoftTimeLimitExceeded
+        # mid-deploy (leaving a partial). 25 min soft / 30 min hard covers a worst-case 6-device run.
+        soft_time_limit = 1500
+        time_limit = 1800
 
     def run(self, action, tenant_number, auto_approve=False):
         name = f"tenant{tenant_number}"
         user = self.user or User.objects.filter(is_superuser=True).order_by("id").first()
         auto = bool(auto_approve)
+
+        # Capacity guard (create only): VX's NVUE truncates a compute-leaf candidate diff beyond ~MAX
+        # tenants (IncompleteRead in perform_configuration_diff). Fail fast with a clear message instead
+        # of a partial deploy + timeout. Raise MAX_TENANTS_PER_LEAF only on capable HW, or free a slot.
+        if action == "create":
+            for dn in COMPUTE.split(","):
+                d = Device.objects.filter(name=dn).first()
+                if not d:
+                    continue
+                cur = [e for e in (d.local_config_context_data or {}).get("tenants", []) if e.get("vrf", "").startswith("tenant")]
+                if not any(e.get("vrf") == name for e in cur) and len(cur) >= MAX_TENANTS_PER_LEAF:
+                    self.logger.failure(
+                        "REFUSING create %s: %s already has %d tenants (VX diff-safe max %d). The candidate "
+                        "diff would truncate (IncompleteRead). Free a slot (destroy one) or stage the deploy "
+                        "(stc_tenant_operations.sh stage-deploy).", name, dn, len(cur), MAX_TENANTS_PER_LEAF)
+                    return {"tenant": name, "action": action, "refused": "capacity", "leaf": dn, "count": len(cur)}
 
         # 1. compile (create -> overlay ; destroy -> offboard), synchronously, reusing the existing jobs.
         if action == "create":
