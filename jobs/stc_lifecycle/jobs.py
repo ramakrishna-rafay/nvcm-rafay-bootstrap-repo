@@ -135,13 +135,40 @@ def _stage_device(logger, d, field, auto, batches=3):
 
 
 def _deploy_or_stage(logger, d, auto):
-    """One-shot deploy; if it doesn't COMPLETE (and wasn't just gated-HELD), auto-stage the device by
-    type (DC-GW -> peers, leaf -> tenants). Adaptive: fast for healthy devices, staged only where needed."""
+    """Deploy one device, adaptively. DC-GWs (~100 peers) ALWAYS exceed VX's diff limit, so stage them
+    directly — skipping a doomed one-shot that would just leave a red 'configuration deploy' workflow in
+    NVCM. Leaves/borders deploy one-shot and only stage if that actually fails. Fast where possible,
+    staged where needed, no guaranteed-failed workflows."""
+    if "DC-R-" in d.name:
+        return _stage_device(logger, d, "peers", auto)
     st = _deploy_device(logger, d, auto)
     if st in ("COMPLETED", "held"):
         return st
-    field = "peers" if "DC-R-" in d.name else "tenants"
-    return _stage_device(logger, d, field, auto)
+    return _stage_device(logger, d, "tenants", auto)
+
+
+def _sync_sot(logger, name, deployed):
+    """Keep the Nautobot SoT in sync with what the lifecycle just did: tag the tenant Deployed/Reserved
+    and (on create) link its VRF object to the Tenant so it shows on the tenant page. Best-effort."""
+    from django.contrib.contenttypes.models import ContentType
+    from nautobot.extras.models import Tag
+    from nautobot.ipam.models import VRF
+    t = Tenant.objects.filter(name=name).first()
+    if not t:
+        return
+    ct = ContentType.objects.get_for_model(Tenant)
+    dep, _ = Tag.objects.get_or_create(name="STC Fabric: Deployed", defaults={"color": "4caf50"})
+    res, _ = Tag.objects.get_or_create(name="STC Fabric: Reserved", defaults={"color": "ffc107"})
+    dep.content_types.add(ct); res.content_types.add(ct)
+    if deployed:
+        t.tags.remove(res); t.tags.add(dep)
+        v = VRF.objects.filter(name=name).first()
+        if v and not v.tenant:
+            v.tenant = t; v.save(); logger.info("%s: linked VRF -> Tenant (now visible on the tenant page)", name)
+        logger.info("%s: tagged 'STC Fabric: Deployed'", name)
+    else:
+        t.tags.remove(dep); t.tags.add(res)
+        logger.info("%s: tagged 'STC Fabric: Reserved'", name)
 
 
 def _run_compile(logger, user, job_class_name, **kwargs):
@@ -234,6 +261,8 @@ class STCTenantLifecycle(Job):
             self.logger.warning("%s: intent updated + %d device(s) HELD at review — approve in NVCM to apply", name, len(held))
         else:
             self.logger.success("%s %s: Nautobot AND %d device(s) on the fabric.", name, verb, len(completed))
+        # 3. keep the SoT in sync: tag Deployed/Reserved + (create) link the VRF to the Tenant object.
+        _sync_sot(self.logger, name, deployed=(action == "create"))
         return {"tenant": name, "action": action, "compiled": True, "completed": completed, "held": held, "failed": bad}
 
 
