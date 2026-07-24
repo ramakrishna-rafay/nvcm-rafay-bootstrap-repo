@@ -257,6 +257,82 @@ def _sync_ipam(logger, name, create):
     logger.info("%s: IPAM synced (VLANs + prefixes + VRF RD/RT + overlay IPs on SVIs)", name)
 
 
+def _sync_overlays(logger, name, create):
+    """Keep the NVIDIA multi-tenancy overlay models (nautobot_app_overlays) in sync with the tenant: an
+    Overlay (isolation_type=vxlan_evpn) parent, its VXLANs (L2 HGX/NFS + L3VNI, linked to the tenant
+    VLAN/VRF + route-targets), the tenant InfiniBand PKey (0x8000+T), and OverlayAssignments binding the
+    overlay to the compute leaves. create=False removes them. Best-effort; the plugin may be absent."""
+    try:
+        from nautobot_app_overlays.models import Overlay, VXLAN, InfiniBandPKey, OverlayAssignment
+    except Exception:
+        logger.info("%s: nautobot_app_overlays not installed — skipping overlay models", name)
+        return
+    from django.contrib.contenttypes.models import ContentType
+    from nautobot.extras.models import Status
+    from nautobot.ipam.models import VLAN, VLANGroup, VRF, RouteTarget, Namespace
+    t = Tenant.objects.filter(name=name).first()
+    if not t:
+        return
+    if not create:
+        OverlayAssignment.objects.filter(overlay__tenant=t).delete()
+        nv = VXLAN.objects.filter(tenant=t).count()
+        VXLAN.objects.filter(tenant=t).delete()
+        InfiniBandPKey.objects.filter(tenant=t).delete()
+        Overlay.objects.filter(tenant=t).delete()
+        logger.info("%s: removed overlay models (%d VXLAN + pkey + overlay)", name, nv)
+        return
+    active = Status.objects.get(name="Active")
+    ns = Namespace.objects.get(name="Global")
+    grp, _ = VLANGroup.objects.get_or_create(name="STC")
+    leaf = Device.objects.get(name=COMPUTE_LEAVES[0])
+    asn = (leaf.local_config_context_data or {}).get("asn", 65000)
+    e = next((x for x in (leaf.local_config_context_data or {}).get("tenants", []) if x.get("vrf") == name), None)
+    if not e:
+        return
+    vrf = VRF.objects.filter(name=name).first()
+    l3vni = e.get("l3vni")
+    ov, _ = Overlay.objects.get_or_create(
+        name=f"{name}-evpn",
+        defaults={"tenant": t, "location": leaf.location, "isolation_type": "vxlan_evpn",
+                  "status": active, "partition_id": str(l3vni or "")})
+    ov.tenant = t; ov.location = leaf.location; ov.status = active; ov.save()
+    rt = RouteTarget.objects.filter(name=f"{asn}:{l3vni}").first() if l3vni else None
+
+    def _vx(vnid, vname, typ, vlan=None, l3vid=None):
+        x, _ = VXLAN.objects.get_or_create(vnid=vnid, namespace=ns,
+                                           defaults={"name": vname, "vni_type": typ, "status": active, "tenant": t})
+        x.name = vname; x.vni_type = typ; x.tenant = t; x.overlay = ov; x.vrf = vrf; x.status = active
+        if vlan is not None:
+            x.vlan = vlan
+        if l3vid is not None:
+            x.l3_vlan_id = l3vid
+        x.save()
+        if rt:
+            x.import_targets.add(rt); x.export_targets.add(rt)
+
+    for i, l in enumerate(e.get("l2vnis", [])):
+        role = ["hgx", "nfs"][i] if i < 2 else f"l2vni{i}"
+        _vx(l["vni"], f"{name}-{role}", "l2", vlan=VLAN.objects.filter(vlan_group=grp, vid=l["vlan"]).first())
+    if l3vni:
+        _vx(l3vni, f"{name}-l3vni", "l3",
+            vlan=VLAN.objects.filter(vlan_group=grp, vid=e.get("l3vni_vlan")).first(), l3vid=e.get("l3vni_vlan"))
+    # InfiniBand PKey 0x8000+T (lowercase hex — the model normalizes on save; key on tenant for idempotency)
+    tnum = name[len("tenant"):]
+    if tnum.isdigit():
+        pk = f"0x{0x8000 + int(tnum):04x}"
+        p, _ = InfiniBandPKey.objects.get_or_create(
+            tenant=t, defaults={"pkey": pk, "name": f"{name}-pkey", "membership_type": "full", "status": active})
+        p.pkey = pk; p.name = f"{name}-pkey"; p.membership_type = "full"; p.status = active; p.save()
+    dev_ct = ContentType.objects.get_for_model(Device)
+    for dn in COMPUTE_LEAVES:
+        d = Device.objects.filter(name=dn).first()
+        if d:
+            OverlayAssignment.objects.get_or_create(
+                overlay=ov, assigned_object_type=dev_ct, assigned_object_id=d.id,
+                defaults={"role": "leaf", "membership_type": "full", "status": active})
+    logger.info("%s: overlay models synced (Overlay + VXLANs + IB PKey + assignments)", name)
+
+
 def _run_compile(logger, user, job_class_name, **kwargs):
     """Run a compile job (STCTenantOverlay/STCTenantOffboard) synchronously; return True on success."""
     job = JobModel.objects.filter(module_name="stc_tenant.jobs", job_class_name=job_class_name,
@@ -334,6 +410,7 @@ class STCTenantLifecycle(Job):
         # 1b. SoT-FIRST: sync IPAM (VLANs/Prefixes/VNI) BEFORE touching the switch — create on create,
         #     remove on destroy — so Nautobot's IPAM reflects the fabric and never drifts from it.
         _sync_ipam(self.logger, name, create=(action == "create"))
+        _sync_overlays(self.logger, name, create=(action == "create"))
 
         # 2. deploy the affected devices ONCE (declarative — create adds, destroy drops), gated.
         self.logger.info("deploying %d affected device(s) (approve=%s)…", len(AFFECTED), "auto" if auto else "manual-hold")
