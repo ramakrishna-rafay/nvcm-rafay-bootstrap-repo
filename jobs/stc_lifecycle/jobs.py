@@ -190,10 +190,12 @@ def _sync_ipam(logger, name, create):
         return
     grp, _ = VLANGroup.objects.get_or_create(name="STC")
     if not create:
+        from nautobot.ipam.models import IPAddress
         nv = VLAN.objects.filter(tenant=t, vlan_group=grp).count()
         VLAN.objects.filter(tenant=t, vlan_group=grp).delete()
         Prefix.objects.filter(tenant=t).delete()
-        logger.info("%s: removed %d IPAM VLAN(s) + prefixes", name, nv)
+        IPAddress.objects.filter(tenant=t).delete()
+        logger.info("%s: removed %d IPAM VLAN(s) + prefixes + overlay IPs", name, nv)
         return
     active = Status.objects.get(name="Active")
     cf, _ = CustomField.objects.get_or_create(key="l2vni", defaults={"label": "VXLAN VNI", "type": cf_int})
@@ -214,7 +216,27 @@ def _sync_ipam(logger, name, create):
     if e.get("l3vni_vlan"):
         v, _ = VLAN.objects.get_or_create(vlan_group=grp, vid=e["l3vni_vlan"], defaults={"name": f"{name}-l3vni", "status": active, "tenant": t})
         v.tenant = t; v.name = f"{name}-l3vni"; v._custom_field_data["l2vni"] = e.get("l3vni"); v.save()
-    logger.info("%s: IPAM synced (VLANs + prefixes created/updated)", name)
+    # VRF RD + Route Targets (canonical <asn>:<L3VNI> from f(T)) — documents the EVPN VRF in the SoT.
+    from nautobot.ipam.models import VRF, RouteTarget, IPAddress
+    asn = (Device.objects.get(name=COMPUTE_LEAVES[0]).local_config_context_data or {}).get("asn", 65000)
+    vrf = VRF.objects.filter(name=name).first()
+    if vrf and e.get("l3vni"):
+        rdrt = f"{asn}:{e['l3vni']}"
+        if vrf.rd != rdrt:
+            vrf.rd = rdrt; vrf.save()
+        rt, _ = RouteTarget.objects.get_or_create(name=rdrt, defaults={"tenant": t})
+        vrf.import_targets.add(rt); vrf.export_targets.add(rt)
+    # overlay IP addresses: anycast gateway + per-leaf SVIs (within the tenant prefixes) — read both leaves.
+    for leaf in COMPUTE_LEAVES:
+        ent = next((x for x in (Device.objects.get(name=leaf).local_config_context_data or {}).get("tenants", []) if x.get("vrf") == name), None)
+        if not ent:
+            continue
+        for l in ent.get("l2vnis", []):
+            plen = l["svi"].split("/")[1] if l.get("svi") else None
+            for addr in filter(None, [f"{l['gw']}/{plen}" if l.get("gw") and plen else None, l.get("svi")]):
+                ip, _ = IPAddress.objects.get_or_create(address=addr, namespace=ns, defaults={"status": active, "tenant": t})
+                ip.tenant = t; ip.save()
+    logger.info("%s: IPAM synced (VLANs + prefixes + VRF RD/RT + overlay IPs)", name)
 
 
 def _run_compile(logger, user, job_class_name, **kwargs):
