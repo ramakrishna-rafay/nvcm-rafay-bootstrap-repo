@@ -28,7 +28,7 @@ import urllib.error
 import urllib.request
 
 from nautobot.apps.jobs import BooleanVar, ChoiceVar, IntegerVar, Job, register_jobs
-from nautobot.dcim.models import Device
+from nautobot.dcim.models import Device, Interface
 from nautobot.extras.jobs import JobHookReceiver
 from nautobot.extras.models import Job as JobModel, JobResult
 from nautobot.tenancy.models import Tenant
@@ -195,7 +195,11 @@ def _sync_ipam(logger, name, create):
         VLAN.objects.filter(tenant=t, vlan_group=grp).delete()
         Prefix.objects.filter(tenant=t).delete()
         IPAddress.objects.filter(tenant=t).delete()
-        logger.info("%s: removed %d IPAM VLAN(s) + prefixes + overlay IPs", name, nv)
+        # drop the tenant's SVI interfaces (vlanNNN) off the compute leaves; the IP↔interface
+        # assignments cascade with either side, and the IPs are already gone above.
+        ni = Interface.objects.filter(device__name__in=COMPUTE_LEAVES, name__istartswith="vlan",
+                                      vrf__name=name).delete()[0]
+        logger.info("%s: removed %d IPAM VLAN(s) + prefixes + overlay IPs + %d SVI(s)", name, nv, ni)
         return
     active = Status.objects.get(name="Active")
     cf, _ = CustomField.objects.get_or_create(key="l2vni", defaults={"label": "VXLAN VNI", "type": cf_int})
@@ -226,17 +230,31 @@ def _sync_ipam(logger, name, create):
             vrf.rd = rdrt; vrf.save()
         rt, _ = RouteTarget.objects.get_or_create(name=rdrt, defaults={"tenant": t})
         vrf.import_targets.add(rt); vrf.export_targets.add(rt)
-    # overlay IP addresses: anycast gateway + per-leaf SVIs (within the tenant prefixes) — read both leaves.
+    # overlay IP addresses assigned to their SVI interfaces: each L2VNI is an SVI (vlanNNN) on every
+    # compute leaf, carrying the shared anycast gateway (one IP object, bound to the SVI on both leaves)
+    # plus that leaf's own SVI address. Model the SVI as a virtual interface in the tenant VRF and bind
+    # the IPs so the SoT shows device↔IP topology, not just floating addresses. Read both leaves.
     for leaf in COMPUTE_LEAVES:
-        ent = next((x for x in (Device.objects.get(name=leaf).local_config_context_data or {}).get("tenants", []) if x.get("vrf") == name), None)
+        dev = Device.objects.get(name=leaf)
+        ent = next((x for x in (dev.local_config_context_data or {}).get("tenants", []) if x.get("vrf") == name), None)
         if not ent:
             continue
         for l in ent.get("l2vnis", []):
             plen = l["svi"].split("/")[1] if l.get("svi") else None
+            iface, _ = Interface.objects.get_or_create(
+                device=dev, name=f"vlan{l['vlan']}",
+                defaults={"type": "virtual", "status": active})
+            if iface.type != "virtual" or iface.status_id != active.id or (vrf and iface.vrf_id != getattr(vrf, "id", None)):
+                iface.type = "virtual"; iface.status = active
+                if vrf:
+                    iface.vrf = vrf
+                iface.save()
             for addr in filter(None, [f"{l['gw']}/{plen}" if l.get("gw") and plen else None, l.get("svi")]):
                 ip, _ = IPAddress.objects.get_or_create(address=addr, namespace=ns, defaults={"status": active, "tenant": t})
-                ip.tenant = t; ip.save()
-    logger.info("%s: IPAM synced (VLANs + prefixes + VRF RD/RT + overlay IPs)", name)
+                if ip.tenant_id != t.id:
+                    ip.tenant = t; ip.save()
+                iface.ip_addresses.add(ip)
+    logger.info("%s: IPAM synced (VLANs + prefixes + VRF RD/RT + overlay IPs on SVIs)", name)
 
 
 def _run_compile(logger, user, job_class_name, **kwargs):
