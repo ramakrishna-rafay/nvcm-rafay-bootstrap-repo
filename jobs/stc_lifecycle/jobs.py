@@ -171,6 +171,52 @@ def _sync_sot(logger, name, deployed):
         logger.info("%s: tagged 'STC Fabric: Reserved'", name)
 
 
+def _sync_ipam(logger, name, create):
+    """Keep Nautobot IPAM (VLANs/Prefixes/VNI) in sync with the tenant's overlay so the UI reflects the
+    fabric. create=True: build VLAN (HGX/NFS/L3VNI, VNI in the 'l2vni' custom field) + Prefix objects from
+    the tenant's config_context (the deployed intent). create=False: remove this tenant's STC IPAM objects.
+    Nautobot core has no VXLAN model, so the VNI rides as a custom field on the VLAN. Best-effort."""
+    import ipaddress
+    from django.contrib.contenttypes.models import ContentType
+    from nautobot.extras.models import CustomField, Status
+    from nautobot.ipam.models import VLAN, VLANGroup, Prefix, Namespace
+    try:
+        from nautobot.extras.choices import CustomFieldTypeChoices
+        cf_int = CustomFieldTypeChoices.TYPE_INTEGER
+    except Exception:
+        cf_int = "integer"
+    t = Tenant.objects.filter(name=name).first()
+    if not t:
+        return
+    grp, _ = VLANGroup.objects.get_or_create(name="STC")
+    if not create:
+        nv = VLAN.objects.filter(tenant=t, vlan_group=grp).count()
+        VLAN.objects.filter(tenant=t, vlan_group=grp).delete()
+        Prefix.objects.filter(tenant=t).delete()
+        logger.info("%s: removed %d IPAM VLAN(s) + prefixes", name, nv)
+        return
+    active = Status.objects.get(name="Active")
+    cf, _ = CustomField.objects.get_or_create(key="l2vni", defaults={"label": "VXLAN VNI", "type": cf_int})
+    cf.content_types.add(ContentType.objects.get_for_model(VLAN))
+    ns = Namespace.objects.get(name="Global")
+    e = next((x for x in (Device.objects.get(name=COMPUTE_LEAVES[0]).local_config_context_data or {}).get("tenants", [])
+              if x.get("vrf") == name), None)
+    if not e:
+        return
+    for i, l in enumerate(e.get("l2vnis", [])):
+        role = ["hgx", "nfs"][i] if i < 2 else f"l2vni{i}"
+        v, _ = VLAN.objects.get_or_create(vlan_group=grp, vid=l["vlan"], defaults={"name": f"{name}-{role}", "status": active, "tenant": t})
+        v.tenant = t; v.name = f"{name}-{role}"; v._custom_field_data["l2vni"] = l.get("vni"); v.save()
+        if l.get("svi"):
+            net = str(ipaddress.ip_interface(l["svi"]).network)
+            p, _ = Prefix.objects.get_or_create(prefix=net, namespace=ns, defaults={"status": active, "tenant": t})
+            p.tenant = t; p.save()
+    if e.get("l3vni_vlan"):
+        v, _ = VLAN.objects.get_or_create(vlan_group=grp, vid=e["l3vni_vlan"], defaults={"name": f"{name}-l3vni", "status": active, "tenant": t})
+        v.tenant = t; v.name = f"{name}-l3vni"; v._custom_field_data["l2vni"] = e.get("l3vni"); v.save()
+    logger.info("%s: IPAM synced (VLANs + prefixes created/updated)", name)
+
+
 def _run_compile(logger, user, job_class_name, **kwargs):
     """Run a compile job (STCTenantOverlay/STCTenantOffboard) synchronously; return True on success."""
     job = JobModel.objects.filter(module_name="stc_tenant.jobs", job_class_name=job_class_name,
@@ -244,6 +290,10 @@ class STCTenantLifecycle(Job):
             self.logger.failure("%s: compile step failed — aborting before deploy", name)
             return {"tenant": name, "action": action, "compiled": False}
         self.logger.success("%s: intent updated in Nautobot (%s).", name, action)
+
+        # 1b. SoT-FIRST: sync IPAM (VLANs/Prefixes/VNI) BEFORE touching the switch — create on create,
+        #     remove on destroy — so Nautobot's IPAM reflects the fabric and never drifts from it.
+        _sync_ipam(self.logger, name, create=(action == "create"))
 
         # 2. deploy the affected devices ONCE (declarative — create adds, destroy drops), gated.
         self.logger.info("deploying %d affected device(s) (approve=%s)…", len(AFFECTED), "auto" if auto else "manual-hold")
