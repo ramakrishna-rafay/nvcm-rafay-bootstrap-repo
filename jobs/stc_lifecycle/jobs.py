@@ -41,6 +41,7 @@ BORDERS = "RMDC-GPU-LETH05,RMDC-GPU-LETH06"
 DCGW = "RMDC-DC-R-01"
 AFFECTED = ["RMDC-GPU-LETH01", "RMDC-GPU-LETH02", "RMDC-GPU-LETH05", "RMDC-GPU-LETH06",
             "RMDC-DC-R-01", "RMDC-DC-R-02"]
+name = "STC Tenant"   # UI grouping — share the group with the (hidden) compile jobs
 DEPLOYED_TAG = "STC Fabric: Deployed"
 COMPUTE_LEAVES = COMPUTE.split(",")
 
@@ -127,7 +128,7 @@ class STCTenantLifecycle(Job):
                     "review gate (production change control).")
 
     class Meta:
-        name = "STC Tenant — Lifecycle (create / destroy, Nautobot ↔ switch)"
+        name = "1) Tenant — Create / Destroy (Nautobot ↔ switch)"
         description = ("One action for the whole path. create: STCTenantOverlay compile + deploy. "
                        "destroy: STCTenantOffboard clear + deploy the removal. Gated by auto_approve.")
         has_sensitive_variables = False
@@ -178,7 +179,7 @@ class STCTenantConsistency(Job):
     fail_on_drift = BooleanVar(default=False, description="Mark the run FAILED on any drift (scheduled alerting).")
 
     class Meta:
-        name = "STC Tenant — Consistency (desired vs intent)"
+        name = "2) Tenant — Drift Check (SoT vs fabric)"
         description = ("Compares Tenants tagged 'STC Fabric: Deployed' (desired) vs the tenant VRFs in the "
                        "compute leaves' config_context (intent). Flags A1 desired-not-compiled / A2 "
                        "compiled-not-desired. Schedule it for continuous SoT-vs-fabric drift.")
@@ -215,6 +216,7 @@ class STCTenantProvisionHook(JobHookReceiver):
 
     class Meta:
         name = "STC Tenant — Auto-compile on desired (Job Hook)"
+        hidden = True   # triggered by the JobHook, not run manually
         description = ("Job-hook receiver: when a Tenant is tagged 'STC Fabric: Deployed', enqueue "
                        "STCTenantOverlay to compile its intent. Does NOT deploy — the switch apply stays a "
                        "gated STCTenantLifecycle step. Idempotent + storm-safe.")
